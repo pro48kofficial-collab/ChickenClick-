@@ -1,321 +1,282 @@
+
 PRO48K:
 <!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>🐔 Neon Chicken Clicker</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐔 Neon Chicken Clicker v2</title>
 <style>
-body{margin:0;background:#111;color:#0ff;font-family:sans-serif;text-align:center}
-.screen{display:none;padding:20px}
-.active{display:block}
-
-.neon{
-font-weight:bold;
-text-shadow:0 0 5px #0ff,0 0 10px #f0f,0 0 20px #0ff
-}
-
-button{
-margin:5px;
-padding:10px 16px;
-border:none;
-border-radius:10px;
-background:#222;
-color:#0ff;
-font-weight:bold;
-cursor:pointer
-}
-button:hover{background:#0ff;color:#000}
-
-#chicken{
-width:170px;
-border-radius:50%;
-cursor:pointer;
-box-shadow:0 0 20px #0ff,0 0 40px #0ff
-}
-
-.bar{
-width:80%;
-height:20px;
-background:#333;
-margin:auto;
-border-radius:10px;
-overflow:hidden
-}
-.bar div{
-height:100%;
-background:linear-gradient(90deg,#0ff,#f0f);
-width:0%
-}
-
-.item{
-background:#1a1a1a;
-margin:10px auto;
-padding:10px;
-border-radius:10px;
-max-width:350px;
-display:flex;
-justify-content:space-between;
-align-items:center
-}
+body{margin:0;font-family:sans-serif;background:#111;color:#0ff;text-align:center;}
+.neon{font-weight:bold;text-shadow:0 0 5px #0ff,0 0 10px #f0f;}
+header{display:flex;justify-content:center;background:#222;padding:5px;flex-wrap:wrap;}
+header button{margin:5px;padding:10px 20px;border:none;border-radius:10px;font-weight:bold;color:#0ff;background:#333;cursor:pointer;transition:0.3s;}
+header button:hover{background:#0fa;color:#000;}
+.screen{display:none;padding:20px;}
+.active{display:block;}
+#chicken-img{width:200px;cursor:pointer;transition:0.1s;display:block;margin:30px auto;border-radius:50%;box-shadow:0 0 10px #0ff,0 0 20px #0ff,0 0 40px #0ff;}
+#chicken-img:active{transform:scale(0.9);}
+.bar{width:80%;height:20px;background:#333;margin:10px auto;border-radius:10px;overflow:hidden;}
+.bar div{height:100%;width:0%;background:linear-gradient(90deg,#00ffcc,#00ffaa);transition:width .3s;}
+.item-box{border:1px solid #444;padding:10px;margin:8px auto;background:#1a1a1a;border-radius:8px;display:flex;justify-content:space-between;align-items:center;max-width:400px;}
+.buy-btn{background:#0fa;border:none;padding:5px 10px;font-weight:bold;border-radius:6px;color:#000;cursor:pointer;}
 </style>
 </head>
 <body>
-
-<h1 class="neon">🐔 Neon Chicken Clicker</h1>
-
-<div>
-<button onclick="show('main')">Гра</button>
+<header>
+<button onclick="show('main')">Головна</button>
 <button onclick="show('shop')">Магазин</button>
 <button onclick="show('cases')">Кейси</button>
-<button onclick="show('eggs')">Яйця</button>
 <button onclick="show('inv')">Рюкзак</button>
 <button onclick="show('profile')">Профіль</button>
-</div>
+<button onclick="show('pvp')">PvP Арена</button>
+</header>
 
 <!-- MAIN -->
 <div id="main" class="screen active">
-<img id="chicken" src="https://img.icons8.com/color/200/chicken.png" onclick="clickChicken()">
-
-<h2 class="neon">🪙 <span id="coins">0</span></h2>
-
-<div class="bar"><div id="xpbar"></div></div>
-<p class="neon">LVL <span id="lvl">0</span></p>
-<p>Клік: +<span id="power">1</span></p>
+<img id="chicken-img" src="https://img.icons8.com/color/200/chicken.png" onclick="clickChicken()">
+<p class="neon">💰 Коїни: <span id="coins">0</span></p>
+<p class="neon">⭐ Рівень: <span id="level">0</span> / 20000</p>
+<div class="bar"><div id="xpBar"></div></div>
+<p class="neon">XP: <span id="xp">0</span> / 100</p>
 </div>
 
 <!-- SHOP -->
 <div id="shop" class="screen">
-<h2>Магазин</h2>
-
-<div class="item">👊 Кулак 1 <button onclick="buyItem('👊',1)">Купити</button></div>
-<div class="item">🪨 Камінь 10 <button onclick="buyItem('🪨',10)">Купити</button></div>
-<div class="item">🗡️ Шабля 5000 <button onclick="buyItem('🗡️',5000)">Купити</button></div>
-<div class="item">⚡ Блискавка 50000 <button onclick="buyItem('⚡',50000)">Купити</button></div>
-<div class="item">☄️ Лазер 500000 <button onclick="buyItem('☄️',500000)">Купити</button></div>
-
-<div class="item">⚡ Апгрейд кліка <span id="price">5000</span>
-<button onclick="upgrade()">+</button></div>
-
-<div class="item">🤖 Автоклікер 10000 <button onclick="buyAuto()">Купити</button></div>
-
-<div class="item">💥 Сила x200 200000 <button onclick="buyPower()">Купити</button></div>
+<h2 class="neon">🛒 Магазин</h2>
+<div id="shop-items"></div>
 </div>
 
 <!-- CASES -->
 <div id="cases" class="screen">
-<h2>Кейси</h2>
-
-<button onclick="openCase()">Відкрити кейс (5000)</button>
-<p id="caseResult"></p>
-</div>
-
-<!-- EGGS -->
-<div id="eggs" class="screen">
-<h2>Яйця</h2>
-
-<button onclick="openEgg()">Відкрити яйце (8000)</button>
-<p id="eggResult"></p>
+<h2 class="neon">🎁 Кейси / Яйця</h2>
+<button class="buy-btn" onclick="openCase()">Відкрити кейс (5000 🪙)</button>
+<p class="neon" id="caseResult"></p>
 </div>
 
 <!-- INVENTORY -->
 <div id="inv" class="screen">
-<h2>Інвентар</h2>
-<div id="invlist">Порожньо</div>
+<h2 class="neon">🎒 Рюкзак</h2>
+<div id="inv-list" class="neon">Порожньо</div>
 </div>
 
 <!-- PROFILE -->
 <div id="profile" class="screen">
+<h2 class="neon">👤 Профіль</h2>
+<p>Нік: <span id="nick">Гравець</span></p>
+<input type="text" id="nickinput" placeholder="Введіть нік">
+<button class="buy-btn" onclick="setNick()">OK</button>
 
-<h2>Профіль</h2>
+<h3 class="neon">Колір ніку</h3>
+<button onclick="setNickColor('red')">Червоний</button>
+<button onclick="setNickColor('#0ff')">Неон</button>
+<button onclick="setNickColor('yellow')">Жовтий</button>
+<button onclick="setNickColor('orange')">Оранж</button>
+<button onclick="setNickColor('lime')">Лайм</button>
 
-Нік: <span id="nick">Гравець</span><br>
-<input id="nickInput" placeholder="Новий нік">
-<button onclick="setNick()">OK</button>
+<h3 class="neon">Аватарки</h3>
+<div id="avatar-display" style="font-size:40px">🐔</div>
+<div id="avatar-buttons"></div>
 
-<h3>Аватар</h3>
-<div style="font-size:40px" id="avatar">🐔</div>
+<h3 class="neon">Статистика</h3>
+<p>Кліки: <span id="total-clicks">0</span></p>
+<p>Покупки: <span id="total-buys">0</span></p>
+<p>Витрачено: <span id="spent">0</span></p>
+<button class="buy-btn" onclick="resetGame()">Скинути гру</button>
+</div>
 
-<button onclick="setAvatar('🐔')">🐔</button>
-<button onclick="setAvatar('🏆')">🏆</button>
-<button onclick="setAvatar('👑')">👑</button>
-
-<h3>Статистика</h3>
-Кліки: <span id="clicks">0</span><br>
-Покупки: <span id="buys">0</span><br>
-Витрачено: <span id="spent">0</span>
-
-<br><br>
-<button onclick="reset()">RESET</button>
-
+<!-- PVP -->
+<div id="pvp" class="screen">
+<h2 class="neon">⚔️ PvP Арена</h2>
+<p class="neon" id="pvp-coins">Ваші коїни: 0</p>
+<p class="neon" id="bot-health">Бот HP: 100</p>
+<button class="buy-btn" onclick="pvpAttack()">Атакувати бота</button>
+<button class="buy-btn" onclick="show('main')">Назад</button>
 </div>
 
 <script>
+// Глобальні змінні
 
-let coins=0,xp=0,level=0,clickPower=1;
-let inv=[],buys=0,spent=0;
-let price=5000;
-let auto=false;
-let autoInt=null;
+let coins=0, xp=0, level=0, clickPower=1;
+let inventory=[], totalClicks=0, totalBuys=0, spent=0;
+let clickUpgradePrice=5000;
+let auto=false, autoInterval=null;
+let nick="Гравець", nickColor="white";
+let avatar="🐔", unlockedAvatars=["🐔"];
+let shopWeapons=[
+  {name:"Кулак", price:1},
+  {name:"Камінь", price:10},
+  {name:"Шабля", price:5000},
+  {name:"Катана", price:10000},
+  {name:"Блискавка", price:50000},
+  {name:"Щит", price:78000},
+  {name:"Лазер", price:5000000},
+  {name:"Зомбі пушка", price:10000000},
+  {name:"Ядерна бомба", price:50000000},
+  {name:"Сила x200", price:200000},
+  {name:"Автоклікер", price:10000}
+];
+let avatarList=["🐔","🏆","✨","🔥","⚡","🛡️","☣️"];
+let pvpBotHP=100;
 
-let nick="Гравець";
-let avatar="🐔";
-
-/* NAV */
+// Відображення екрану
 function show(id){
-document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-/* CLICK */
+// Основна функція кліка
 function clickChicken(){
-coins+=clickPower;
-xp++;
-
-if(xp>=100){
-xp=0;
-level++;
+  coins += clickPower;
+  xp++;
+  totalClicks++;
+  if(xp>=100){xp=0; level++; unlockAvatars();}
+  update();
+  save();
 }
 
-update();
-save();
+// Відкриття аватарок за рівні
+function unlockAvatars(){
+  if(level>=500 && !unlockedAvatars.includes("🏆")) {unlockedAvatars.push("🏆"); alert("🏆 Аватарка розблокована!");}
+  if(level>=1000 && !unlockedAvatars.includes("✨")) {unlockedAvatars.push("✨"); alert("✨ Аватарка розблокована!");}
 }
 
-/* UPDATE UI */
+// Оновлення UI
 function update(){
-document.getElementById("coins").innerText=Math.floor(coins);
-document.getElementById("lvl").innerText=level;
-document.getElementById("xpbar").style.width=xp+"%";
-document.getElementById("power").innerText=clickPower;
-document.getElementById("price").innerText=price;
-document.getElementById("invlist").innerHTML=inv.length?inv.join("<br>"):"Порожньо";
-document.getElementById("clicks").innerText=(level*100+xp);
-document.getElementById("buys").innerText=buys;
-document.getElementById("spent").innerText=spent;
-document.getElementById("nick").innerText=nick;
-document.getElementById("avatar").innerText=avatar;
+  document.getElementById("coins").innerText=coins;
+  document.getElementById("xp").innerText=xp;
+  document.getElementById("level").innerText=level;
+  document.getElementById("xpBar").style.width=xp+"%";
+  document.getElementById("inv-list").innerHTML=inventory.length?inventory.join("<br>"):"Порожньо";
+  document.getElementById("total-clicks").innerText=totalClicks;
+  document.getElementById("total-buys").innerText=totalBuys;
+  document.getElementById("spent").innerText=spent;
+  document.getElementById("nick").innerText=nick;
+  document.getElementById("nick").style.color=nickColor;
+  document.getElementById("avatar-display").innerText=avatar;
+  document.getElementById("pvp-coins").innerText = "Ваші коїни: "+coins;
+  document.getElementById("bot-health").innerText = "Бот HP: "+pvpBotHP;
 }
 
-/* BUY ITEM */
-function buyItem(n,p){
-if(coins<p) return alert("Мало коінів");
-coins-=p;
-inv.push(n);
-buys++;
-spent+=p;
-update();
-save();
+// Створення кнопок магазину
+function renderShop(){
+  let shopDiv=document.getElementById("shop-items");
+  shopDiv.innerHTML="";
+  shopWeapons.forEach(w=>{
+    let div=document.createElement("div");
+    div.className="item-box";
+    div.innerHTML=<span class="neon">${w.name} (${w.price} 🪙)</span>
+    <button class="buy-btn" onclick="buyItem('${w.name}',${w.price})">Купити</button>;
+    shopDiv.appendChild(div);
+  });
+}
+renderShop();
+
+// Купівля предметів
+function buyItem(name, price){
+  if(coins<price) {alert("❌ Мало коїнів!"); return;}
+  coins -= price; spent+=price; totalBuys++;
+  inventory.push(name);
+  if(name==="Автоклікер") startAuto();
+  if(name==="Сила x200") clickPower*=200;
+  update();
+  save();
 }
 
-/* UPGRADE */
-function upgrade(){
-if(coins<price)return;
-coins-=price;
-clickPower++;
-price=Math.floor(price*1.5);
-update();
-save();
+// Автоклікер
+function startAuto(){
+  if(auto) return;
+  auto=true;
+  autoInterval=setInterval(clickChicken,1000);
 }
 
-/* POWER BOOST */
-function buyPower(){
-if(coins<200000)return;
-coins-=200000;
-clickPower*=200;
-update();
-save();
+// Апгрейд кліка
+function upgradeClick(){
+  if(coins<clickUpgradePrice) return;
+  coins -= clickUpgradePrice;
+  clickPower++;
+  clickUpgradePrice = Math.floor(clickUpgradePrice*1.5);
+  update();
+  save();
 }
 
-/* AUTOCLICK */
-function buyAuto(){
-if(auto)return alert("Вже куплено");
-if(coins<10000)return;
-coins-=10000;
-auto=true;
-autoInt=setInterval(clickChicken,1000);
-}
-
-/* CASE */
+// Кейси / яйця
 function openCase(){
-if(coins<5000)return;
-coins-=5000;
-
-let r=Math.random()*100;
-let win = r<5?1000000:
-          r<20?200000:
-          r<60?50000:
-          10000;
-
-coins+=win;
-document.getElementById("caseResult").innerText="Випало "+win+" 🪙";
-update();
-save();
+  if(coins<5000) return alert("Мало коїнів!");
+  coins -=5000; totalBuys++; spent+=5000;
+  let r=Math.random()*100; let reward="";
+  if(r<5){reward="🔥 Легендарна зброя"; coins+=1000000;}
+  else if(r<20){reward="💣 Потужний предмет"; coins+=100000;}
+  else if(r<60){reward="🪨 Звичайний предмет"; coins+=50000;}
+  else {reward="👊 Невеликий бонус"; coins+=500;}
+  inventory.push(reward);
+  document.getElementById("caseResult").innerText="Випало: "+reward;
+  update();
+  save();
 }
 
-/* EGG */
-function openEgg(){
-if(coins<8000)return;
-coins-=8000;
-
-let r=Math.random()*100;
-let reward = r<3?"👑 Легендарка":
-             r<15?"⚡ Епік":
-             r<50?"⭐ Рідкісний":
-             "🪙 Бонус";
-
-if(reward.includes("Бонус")){
-coins+=50000;
-}else{
-inv.push(reward);
-}
-
-document.getElementById("eggResult").innerText=reward;
-update();
-save();
-}
-
-/* PROFILE */
+// Нік
 function setNick(){
-let val=document.getElementById("nickInput").value;
-if(val) nick=val;
-update();
-save();
+  nick=document.getElementById("nickinput").value||nick;
+  update();
+  save();
 }
 
+// Колір ніку
+function setNickColor(c){nickColor=c; update(); save();}
+
+// Аватарка
 function setAvatar(a){
-avatar=a;
-update();
-save();
+  if(!unlockedAvatars.includes(a)) return alert("Locked");
+  avatar=a; update(); save();
 }
 
-/* SAVE */
-function save(){
-localStorage.setItem("chickenSave",JSON.stringify({
-coins,xp,level,clickPower,inv,buys,spent,price,auto,nick,avatar
-}));
+// PvP мінігра
+function pvpAttack(){
+  let dmg=Math.floor(Math.random()*10+clickPower);
+  pvpBotHP -= dmg;
+  coins += Math.floor(dmg/2);
+  if(pvpBotHP<=0){
+    alert("🎉 Ви перемогли бота! Отримано 100 🪙");
+    coins+=100;
+    pvpBotHP=100;
+  }
+  update();
+  save();
 }
 
-/* LOAD */
+// Збереження / завантаження
+function save(){localStorage.setItem("chickenSave",JSON.stringify({coins,xp,level,clickPower,inventory,totalClicks,totalBuys,spent,nick,nickColor,avatar,unlockedAvatars,auto}));}
 function load(){
-let s=JSON.parse(localStorage.getItem("chickenSave")||"null");
-if(!s)return;
-
-Object.assign(window,s);
-
-if(auto){
-autoInt=setInterval(clickChicken,1000);
-}
-
-update();
+  let s=JSON.parse(localStorage.getItem("chickenSave")||"null");
+  if(!s) return;
+  Object.assign(window,s);
+  if(auto) startAuto();
+  update();
 }
 load();
 
-/* RESET */
-function reset(){
-localStorage.clear();
-location.reload();
-}
+// Скидання гри
+function resetGame(){localStorage.clear(); location.reload();}
 
+// Створення кнопок аватарок
+function renderAvatars(){
+  let div=document.getElementById("avatar-buttons");
+  div.innerHTML="";
+  avatarList.forEach(a=>{
+    let btn=document.createElement("button");
+    btn.className="buy-btn";
+    btn.innerText=a;
+    btn.onclick=()=>setAvatar(a);
+    div.appendChild(btn);
+  });
+}
+renderAvatars();
 </script>
 </body>
 </html>
+
+
+
+
+
