@@ -1,13 +1,13 @@
 <!DOCTYPE html><html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Chicken Clicker ULTRA</title>
+<title>Chicken Clicker ULTIMATE</title>
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#0ff;overflow:hidden}
 .container{display:flex;height:100vh}
 .sidebar{width:200px;background:#020617;border-right:2px solid #0ff;padding:10px}
 .sidebar button{display:block;width:100%;margin:5px 0;padding:10px;background:#000;color:#0ff;border:1px solid #0ff;border-radius:10px}
-.content{flex:1;text-align:center;padding:10px;position:relative}
+.content{flex:1;text-align:center;padding:10px}
 img{width:200px;cursor:pointer;transition:0.1s}
 img:active{transform:scale(0.9)}
 .tab{display:none}
@@ -23,75 +23,77 @@ img:active{transform:scale(0.9)}
 <button onclick="openTab('shop')">🛒</button>
 <button onclick="openTab('inventory')">🎒</button>
 <button onclick="openTab('cases')">🎁</button>
-<button onclick="openTab('leaderboard')">🏆</button>
+<button onclick="openTab('promo')">🎟️</button>
+<button onclick="openTab('event')">🏆</button>
+<button onclick="openTab('avatar')">🎨</button>
+<button onclick="openTab('leaderboard')">👑</button>
 </div><div class="content"><div id="main" class="tab active">
 <h2 class="neon">💰 <span id="coins">0</span></h2>
-<h3>LVL <span id="level">1</span></h3>
+<h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
 <img id="avatarImg" src="https://i.imgur.com/4AiXzf8.png" onclick="clickChicken()">
 <p>Клік: <span id="clickPower">1</span></p>
 </div><div id="shop" class="tab">
-<h2 class="neon">🛒</h2>
-<button onclick="upgradeClick()">⚡ (100)</button>
+<h2 class="neon">🛒 Магазин</h2>
+<button onclick="upgradeClick()">⚡ Апгрейд (100)</button>
 <div id="weapons"></div>
 </div><div id="inventory" class="tab">
-<h2 class="neon">🎒</h2>
+<h2 class="neon">🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
 </div><div id="cases" class="tab">
 <h2 class="neon">🎁 Кейси</h2>
 <button onclick="openCase()">Відкрити (300)</button>
 <p id="caseResult"></p>
+</div><div id="promo" class="tab">
+<h2 class="neon">🎟️ Промо</h2>
+<input id="promoInput"><button onclick="usePromo()">OK</button>
+<p id="promoMsg"></p>
+</div><div id="event" class="tab">
+<h2 class="neon">🏆 Івент</h2>
+<p id="eventReward"></p>
+</div><div id="avatar" class="tab">
+<h2 class="neon">🎨 Аватар</h2>
+<img src="https://i.imgur.com/4AiXzf8.png" onclick="setAvatar(this.src)">
+<img src="https://i.imgur.com/Z6X6G6p.png" onclick="setAvatar(this.src)">
+<img src="https://i.imgur.com/oYiTqum.png" onclick="setAvatar(this.src)">
 </div><div id="leaderboard" class="tab">
-<h2 class="neon">🏆 Лідери</h2>
+<h2 class="neon">👑 Лідери</h2>
 <ol id="leaderboardList"></ol>
 </div></div>
 </div><audio id="clickSound" src="https://www.soundjay.com/button/beep-07.wav"></audio> <audio id="caseSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"></audio>
 
 <script>
-let coins=0,clickPower=1,level=1;
-let inventory=[];
+let coins=0,clickPower=1,xp=0,level=1;
+let inventory=[],usedPromos=[];
 
 let weapons=[
-['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК',1200],['🎯 Снайперка',2000],
-['⚡ Лазер',5000],['🌌 Плазма',10000]
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000],
+['⚡ Лазер',5000],['🌌 Плазма',10000],['🌠 Галактична',20000],['💎 Міфічна',50000]
 ];
 
-function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,level,inventory}))}
-function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;level=d.level;inventory=d.inventory}}
+function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory}))}
+function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}}
 
-function updateUI(){coinsEl.innerText=coins;clickPowerEl.innerText=clickPower;levelEl.innerText=level}
+function updateUI(){coinsEl.innerText=coins;clickPowerEl.innerText=clickPower;xpEl.innerText=xp;levelEl.innerText=level}
 
 function clickChicken(){
 clickSound.play();
-coins+=clickPower;
-if(coins%1000==0)level++;
-animateClick();
-updateUI();save();updateLeaderboard();
+coins+=clickPower;xp++;
+if(xp>=1000){xp=0;level++;coins+=500}
+animateClick();updateUI();save();updateLeaderboard();checkEvent();
 }
 
-function animateClick(){
-avatarImg.style.transform='scale(1.2)';
-setTimeout(()=>avatarImg.style.transform='scale(1)',100);
-}
+function animateClick(){avatarImg.style.transform='scale(1.2)';setTimeout(()=>avatarImg.style.transform='scale(1)',100)}
 
 function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save()}}
 
-function createShop(){
-weaponsEl.innerHTML='';
-weapons.forEach(w=>{
-let b=document.createElement('button');
-b.innerText=w[0]+' ('+w[1]+')';
-b.onclick=()=>buyWeapon(w[0],w[1]);
-weaponsEl.appendChild(b);
-})}
+function createShop(){weaponsEl.innerHTML='';weapons.forEach(w=>{let b=document.createElement('button');b.innerText=w[0]+' ('+w[1]+')';b.onclick=()=>buyWeapon(w[0],w[1]);weaponsEl.appendChild(b);})}
 
 function buyWeapon(name,price){if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save()}}
 
 function updateInventory(){inventoryList.innerHTML='';inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;inventoryList.appendChild(li)})}
 
 function openCase(){
-if(coins>=300){
-coins-=300;
-caseResult.innerHTML='<span class="caseAnim">🎰</span>';
+if(coins>=300){coins-=300;caseResult.innerHTML='<span class="caseAnim">🎰</span>';
 setTimeout(()=>{
 let item=weapons[Math.floor(Math.random()*weapons.length)][0];
 inventory.push(item);
@@ -101,24 +103,18 @@ updateInventory();updateUI();save();
 },1500);
 }}
 
-function updateLeaderboard(){
-let lb=JSON.parse(localStorage.getItem('lb'))||[];
-lb.push({score:coins});
-lb=lb.sort((a,b)=>b.score-a.score).slice(0,5);
-localStorage.setItem('lb',JSON.stringify(lb));
-renderLeaderboard();
-}
+function usePromo(){let c=promoInput.value;if(usedPromos.includes(c))return promoMsg.innerText='Вже';if(c=='Pro48k'||c=='ZCY11K'){coins+=1090;usedPromos.push(c);promoMsg.innerText='+1090'}else promoMsg.innerText='❌';updateUI();save();}
 
-function renderLeaderboard(){
-let lb=JSON.parse(localStorage.getItem('lb'))||[];
-leaderboardList.innerHTML='';
-lb.forEach(p=>{
-let li=document.createElement('li');li.innerText=p.score;leaderboardList.appendChild(li)
-})
-}
+function checkEvent(){if(level==5){coins+=500;eventReward.innerText='+500'}if(level==10){inventory.push('💎 Епік');eventReward.innerText='Епік'}if(level==20){inventory.push('👑 Легенда');eventReward.innerText='Легенда'}}
+
+function setAvatar(src){avatarImg.src=src}
+
+function updateLeaderboard(){let lb=JSON.parse(localStorage.getItem('lb'))||[];lb.push({score:coins});lb=lb.sort((a,b)=>b.score-a.score).slice(0,5);localStorage.setItem('lb',JSON.stringify(lb));renderLeaderboard();}
+
+function renderLeaderboard(){let lb=JSON.parse(localStorage.getItem('lb'))||[];leaderboardList.innerHTML='';lb.forEach(p=>{let li=document.createElement('li');li.innerText=p.score;leaderboardList.appendChild(li)})}
 
 function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
 
 load();createShop();updateInventory();updateUI();renderLeaderboard();
 </script></body>
-                 </html>
+  </html>
