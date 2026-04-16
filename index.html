@@ -2,101 +2,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker MOBILE</title>
+<title>Chicken Clicker FINAL</title>
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#0ff}
 .container{display:flex;flex-direction:column;height:100vh}
 .nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
 .nav button{background:#000;color:#0ff;border:1px solid #0ff;border-radius:10px;padding:8px}
-.content{flex:1;text-align:center;padding-bottom:70px}
-img{width:150px;cursor:pointer}
+.content{flex:1;text-align:center;padding-bottom:80px}
+img{width:140px;cursor:pointer;margin:5px}
 .tab{display:none}
 .active{display:block}
-.neon{color:#0ff;text-shadow:0 0 5px #0ff,0 0 15px #0ff}
 button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
 </style>
 </head>
 <body>
-<div class="container"><div class="content"><div id="main" class="tab active">
-<h2 class="neon">💰 <span id="coins">0</span></h2>
+<div class="container">
+<div class="content"><div id="main" class="tab active">
+<h2>💰 <span id="coins">0</span></h2>
 <h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<img id="avatarImg" src="https://via.placeholder.com/150" onclick="clickChicken()">
+<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" onclick="clickChicken()">
 <p>Клік: <span id="clickPower">1</span></p>
 </div><div id="shop" class="tab">
-<h2 class="neon">🛒 Магазин</h2>
+<h2>🛒 Магазин</h2>
 <button onclick="upgradeClick()">⚡ Апгрейд (100)</button>
 <div id="weapons"></div>
 </div><div id="inventory" class="tab">
-<h2 class="neon">🎒 Інвентар</h2>
+<h2>🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
+</div><div id="cases" class="tab">
+<h2>🎁 Кейси</h2>
+<button onclick="openCase(300)">Звичайний (300)</button>
+<button onclick="openCase(700)">Рідкісний (700)</button>
+<button onclick="openCase(1500)">Легендарний (1500)</button>
+<p id="caseResult"></p>
+</div><div id="promo" class="tab">
+<h2>🎟️ Промокоди</h2>
+<input id="promoInput"><button onclick="usePromo()">OK</button>
+<p id="promoMsg"></p>
 </div><div id="avatar" class="tab">
-<h2 class="neon">🎨 Аватар</h2>
-<img src="https://via.placeholder.com/150/ff0" onclick="setAvatar(this.src)">
-<img src="https://via.placeholder.com/150/0ff" onclick="setAvatar(this.src)">
-<img src="https://via.placeholder.com/150/f0f" onclick="setAvatar(this.src)">
+<h2>🐔 Аватар</h2>
+<img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" onclick="setAvatar(this.src)">
+<img src="https://cdn-icons-png.flaticon.com/512/1998/1998610.png" onclick="setAvatar(this.src)">
+<img src="https://cdn-icons-png.flaticon.com/512/3069/3069172.png" onclick="setAvatar(this.src)">
+<img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" onclick="setAvatar(this.src)">
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
+<button onclick="openTab('cases')">🎁</button>
 <button onclick="openTab('inventory')">🎒</button>
-<button onclick="openTab('avatar')">🎨</button>
-</div></div><script>
+<button onclick="openTab('promo')">🎟️</button>
+<button onclick="openTab('avatar')">🐔</button>
+</div>
+</div><script>
 let coins=0,clickPower=1,xp=0,level=1;
-let inventory=[];
+let inventory=[],usedPromos=[];
 
 let weapons=[
-['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000],
+['⚡ Лазер',5000],['🌌 Плазма',10000],['🌠 Галактична',20000],['💎 Міфічна',50000],
+['👑 Бог',100000],['🧨 Бомба',3000],['🗡️ Ніж',150],['🚀 Ракета',8000]
 ];
 
+let promoCodes=[
+'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift'
+];
+
+function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory}))}
+function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}}
+
 function updateUI(){
-document.getElementById('coins').innerText=coins;
-document.getElementById('clickPower').innerText=clickPower;
-document.getElementById('xp').innerText=xp;
-document.getElementById('level').innerText=level;
+coinsEl.innerText=coins;
+xpEl.innerText=xp;
+levelEl.innerText=level;
+clickPowerEl.innerText=clickPower;
 }
 
 function clickChicken(){
 coins+=clickPower;
-xp+=1;
+xp++;
 if(xp>=1000){xp=0;level++}
-updateUI();
+updateUI();save();
 }
 
-function upgradeClick(){
-if(coins>=100){coins-=100;clickPower++;updateUI()}
-}
+function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save()}}
 
 function createShop(){
-let div=document.getElementById('weapons');
-div.innerHTML='';
+weaponsEl.innerHTML='';
 weapons.forEach(w=>{
 let b=document.createElement('button');
 b.innerText=w[0]+' ('+w[1]+')';
 b.onclick=()=>buyWeapon(w[0],w[1]);
-div.appendChild(b);
+weaponsEl.appendChild(b);
 })
 }
 
 function buyWeapon(name,price){
-if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI()}
+if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save()}
 }
 
 function updateInventory(){
-let list=document.getElementById('inventoryList');
-list.innerHTML='';
-inventory.forEach(i=>{
-let li=document.createElement('li');li.innerText=i;list.appendChild(li)
-})
+inventoryList.innerHTML='';
+inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;inventoryList.appendChild(li)})
 }
 
-function setAvatar(src){
-document.getElementById('avatarImg').src=src;
+function openCase(price){
+if(coins>=price){
+coins-=price;
+let item=weapons[Math.floor(Math.random()*weapons.length)][0];
+inventory.push(item);
+caseResult.innerText='Випало: '+item;
+updateInventory();updateUI();save();
+}
 }
 
-function openTab(t){
-document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-document.getElementById(t).classList.add('active');
+function usePromo(){
+let c=promoInput.value;
+if(usedPromos.includes(c))return promoMsg.innerText='Вже використано';
+if(promoCodes.includes(c)){
+coins+=2090;
+usedPromos.push(c);
+promoMsg.innerText='+2090 коінів';
+}else promoMsg.innerText='❌';
+updateUI();save();
 }
 
-createShop();updateInventory();updateUI();
+function setAvatar(src){avatarImg.src=src}
+
+function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
+
+load();createShop();updateInventory();updateUI();
 </script></body>
-        </html>
+                                                           </html>
