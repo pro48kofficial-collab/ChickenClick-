@@ -71,10 +71,10 @@ function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,
 function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}}
 
 function updateUI(){
-coinsEl.innerText=coins;
-xpEl.innerText=xp;
-levelEl.innerText=level;
-clickPowerEl.innerText=clickPower;
+  document.getElementById('coins').innerText = coins;
+  document.getElementById('xp').innerText = xp;
+  document.getElementById('level').innerText = level;
+  document.getElementById('clickPower').innerText = clickPower;
 }
 
 function clickChicken(){
