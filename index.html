@@ -1,1 +1,148 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Chicken Click</title>\n    <link rel="stylesheet" href="styles.css">\n</head>\n<body>\n    <header>\n        <h1>Welcome to Chicken Click!</h1>\n    </header>\n    <main>\n        <section id="buttons">\n            <button>😊</button> <button>🥳</button> <button>😎</button> <!-- Add more emoji buttons as needed -->\n        </section>\n        <section id="daily-login">\n            <h2>Daily Login Rewards</h2>\n            <p>Log in every day to earn coins!</p>\n            <p>You currently have: 0 coins</p>\n        </section>\n        <section id="leaderboard">\n            <h2>Top 100 Leaderboard</h2>\n            <ul>\n                <li>1. Bot1 - 100 coins - Level 5</li>\n                <li>2. Bot2 - 80 coins - Level 4</li>\n                <!-- Additional bot players -->\n            </ul>\n        </section>\n        <nav>\n            <ul>\n                <li><a href="#cases">Cases</a></li>\n                <li><a href="#avatars">Avatars</a></li>\n                <li><a href="#leaderboard">Leaderboard</a></li>\n            </ul>\n        </nav>\n        <section id="cases">\n            <h2>Open Cases</h2>\n            <p>Cost: 500 coins</p>\n            <button>Open Case</button>\n            <p>Randomly receive a weapon!</p>\n        </section>\n        <section id="avatars">\n            <h2>Select Your Avatar</h2>\n            <ul>\n                <li>👤 Avatar 1</li>\n                <li>👤 Avatar 2</li>\n                <li>👤 Avatar 3</li>\n                <li>👤 Avatar 4</li>\n                <li>👤 Avatar 5</li>\n            </ul>\n        </section>\n    </main>\n    <footer>\n        <p>&copy; 2026 Chicken Click</p>\n    </footer>\n</body>\n</html>
+<!DOCTYPE html><html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicken Clicker STABLE</title>
+<style>
+body{margin:0;font-family:Arial;background:#020617;color:#0ff}
+.container{display:flex;flex-direction:column;height:100vh}
+.content{flex:1;text-align:center;padding-bottom:80px}
+.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
+button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
+img{width:140px;cursor:pointer;margin:5px}
+.tab{display:none}
+.active{display:block}
+</style>
+</head>
+<body>
+<div class="container"><div class="content"><div id="main" class="tab active">
+<h2>💰 <span id="coins">0</span></h2>
+<h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
+<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="chicken">
+<p>Клік: <span id="clickPower">1</span></p>
+<button id="clickBtn">Тапнути 🐔</button>
+</div><div id="shop" class="tab">
+<h2>🛒 Магазин</h2>
+<button id="upgradeBtn">⚡ Апгрейд (100)</button>
+<div id="weapons"></div>
+</div><div id="inventory" class="tab">
+<h2>🎒 Інвентар</h2>
+<ul id="inventoryList"></ul>
+</div><div id="promo" class="tab">
+<h2>🎟️ Промокоди</h2>
+<input id="promoInput"><button id="promoBtn">OK</button>
+<p id="promoMsg"></p>
+</div></div><div class="nav">
+<button onclick="openTab('main')">🐔</button>
+<button onclick="openTab('shop')">🛒</button>
+<button onclick="openTab('inventory')">🎒</button>
+<button onclick="openTab('promo')">🎟️</button>
+</div></div><script>
+let coins=0,clickPower=1,xp=0,level=1;
+let inventory=[];
+let usedPromos=[];
+
+let weapons=[
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
+];
+
+let promoCodes=[
+'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift'
+];
+
+// ✅ ВИПРАВЛЕНО: Додано usedPromos в збереження
+function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,usedPromos}))}
+function load(){
+let d=JSON.parse(localStorage.getItem('game'));
+if(d){
+  coins=d.coins;
+  clickPower=d.clickPower;
+  xp=d.xp;
+  level=d.level;
+  inventory=d.inventory;
+  usedPromos=d.usedPromos||[]; // ✅ ВИПРАВЛЕНО: Завантажуємо використані промокоди
+}
+}
+
+function updateUI(){
+document.getElementById('coins').innerText=coins;
+document.getElementById('xp').innerText=xp;
+document.getElementById('level').innerText=level;
+document.getElementById('clickPower').innerText=clickPower;
+}
+
+function clickChicken(){
+coins += clickPower;
+xp += clickPower;
+// ✅ ВИПРАВЛЕНО: Цикл замість простої умови (для XP > 1000)
+while(xp>=1000){xp-=1000;level++;}
+updateUI();save();
+}
+
+function upgradeClick(){
+if(coins>=100){coins-=100;clickPower++;updateUI();save();}
+}
+
+function createShop(){
+let div=document.getElementById('weapons');
+div.innerHTML='';
+weapons.forEach(w=>{
+let b=document.createElement('button');
+b.innerText=w[0]+' ('+w[1]+')';
+b.onclick=function(){buyWeapon(w[0],w[1]);};
+div.appendChild(b);
+});
+}
+
+function buyWeapon(name,price){
+if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save();}
+}
+
+function updateInventory(){
+let list=document.getElementById('inventoryList');
+list.innerHTML='';
+inventory.forEach(i=>{
+let li=document.createElement('li');
+li.innerText=i;
+list.appendChild(li);
+});
+}
+
+function usePromo(){
+let input=document.getElementById('promoInput').value;
+let msg=document.getElementById('promoMsg');
+if(usedPromos.includes(input)){msg.innerText='Вже використано';return;}
+if(promoCodes.includes(input)){
+coins+=2090;usedPromos.push(input);msg.innerText='+2090';
+}else{msg.innerText='❌';}
+// ✅ ВИПРАВЛЕНО: Очищуємо поле вводу
+document.getElementById('promoInput').value='';
+updateUI();save();
+}
+
+function openTab(t){
+document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+document.getElementById(t).classList.add('active');
+}
+
+// EVENTS (стабільно)
+document.getElementById('clickBtn').addEventListener('click',clickChicken);
+document.getElementById('upgradeBtn').addEventListener('click',upgradeClick);
+document.getElementById('promoBtn').addEventListener('click',usePromo);
+
+// клік по самій курці теж працює
+document.getElementById('avatarImg').addEventListener('click',clickChicken);
+
+// вибір аватарок
+function initAvatars(){
+  const avatarTab = document.getElementById('avatar');
+  if(!avatarTab) return;
+  const imgs = avatarTab.querySelectorAll('img');
+  imgs.forEach(img=>{
+    img.addEventListener('click',()=>setAvatar(img.src));
+  });
+}
+
+load();createShop();updateInventory();updateUI();initAvatars();
+</script></body>
+  </html>
