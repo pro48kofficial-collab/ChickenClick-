@@ -78,9 +78,17 @@ clickPowerEl.innerText=clickPower;
 }
 
 function clickChicken(){
-coins+=clickPower;
-xp++;
-if(xp>=1000){xp=0;level++}
+coins += clickPower; // коіни за клік
+xp += clickPower;   // XP теж залежить від сили кліку
+
+if(xp >= 1000){
+  xp = xp - 1000;
+  level++;
+}
+
+updateUI();
+save();
+}
 updateUI();save();
 }
 
@@ -132,4 +140,4 @@ function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.rem
 
 load();createShop();updateInventory();updateUI();
 </script></body>
-                                                           </html>
+  </html>
