@@ -2,46 +2,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker STABLE</title>
+<title>Chicken Clicker FINAL++</title>
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#0ff}
 .container{display:flex;flex-direction:column;height:100vh}
 .content{flex:1;text-align:center;padding-bottom:80px}
-.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%;box-sizing:border-box}
-button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff;cursor:pointer}
+.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
+button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
 img{width:140px;cursor:pointer;margin:5px}
 .tab{display:none}
 .active{display:block}
-input#promoInput{padding:8px;border:1px solid #0ff;background:#000;color:#0ff;border-radius:5px;margin:5px;font-size:14px}
 </style>
 </head>
 <body>
 <div class="container"><div class="content"><div id="main" class="tab active">
 <h2>💰 <span id="coins">0</span></h2>
 <h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="chicken">
+<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png">
 <p>Клік: <span id="clickPower">1</span></p>
 <button id="clickBtn">Тапнути 🐔</button>
 </div><div id="shop" class="tab">
 <h2>🛒 Магазин</h2>
 <button id="upgradeBtn">⚡ Апгрейд (100)</button>
 <div id="weapons"></div>
+</div><div id="cases" class="tab">
+<h2>🎁 Кейси</h2>
+<button onclick="openCase('pro')">PRO48K (2000)</button>
+<button onclick="openCase('den')">Den (50000)</button>
+<button onclick="openCase('free')">Free (0)</button>
+<button onclick="openCase('zcy')">ZCY11K (100000)</button>
+<p id="caseResult"></p>
 </div><div id="inventory" class="tab">
 <h2>🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
 </div><div id="promo" class="tab">
 <h2>🎟️ Промокоди</h2>
-<input id="promoInput" placeholder="Введіть промокод"><button id="promoBtn">OK</button>
+<input id="promoInput"><button id="promoBtn">OK</button>
 <p id="promoMsg"></p>
+</div><div id="stats" class="tab">
+<h2>📊 Статистика</h2>
+<input id="nickname" placeholder="Нік">
+<p>Кліки: <span id="statClicks">0</span></p>
+<p>Зароблено: <span id="statEarned">0</span></p>
+<p>Витрачено: <span id="statSpent">0</span></p>
+<p>Скіни: <span id="statSkins">0</span></p>
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
+<button onclick="openTab('cases')">🎁</button>
 <button onclick="openTab('inventory')">🎒</button>
 <button onclick="openTab('promo')">🎟️</button>
-</div></div><script>
+<button onclick="openTab('stats')">📊</button>
+</div>
+</div><script>
 let coins=0,clickPower=1,xp=0,level=1;
-let inventory=[];
-let usedPromos=[];
+let inventory=[],usedPromos=[];
+let stats={clicks:0,earned:0,spent:0};
 
 let weapons=[
 ['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
@@ -51,20 +67,20 @@ let promoCodes=[
 'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift'
 ];
 
-// ✅ ВИПРАВЛЕНО: Безпечне завантаження з обробкою помилок
-function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,usedPromos}))}
+function save(){
+localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,stats}))
+}
+
 function load(){
-  try {
-    let d=JSON.parse(localStorage.getItem('game')||'{}');
-    coins=d.coins||0;
-    clickPower=d.clickPower||1;
-    xp=d.xp||0;
-    level=d.level||1;
-    inventory=d.inventory||[];
-    usedPromos=d.usedPromos||[];
-  } catch(e) {
-    console.error('Помилка завантаження:', e);
-  }
+let d=JSON.parse(localStorage.getItem('game'));
+if(d){
+coins=d.coins||0;
+clickPower=d.clickPower||1;
+xp=d.xp||0;
+level=d.level||1;
+inventory=d.inventory||[];
+stats=d.stats||{clicks:0,earned:0,spent:0};
+}
 }
 
 function updateUI(){
@@ -72,18 +88,24 @@ document.getElementById('coins').innerText=coins;
 document.getElementById('xp').innerText=xp;
 document.getElementById('level').innerText=level;
 document.getElementById('clickPower').innerText=clickPower;
+
+document.getElementById('statClicks').innerText=stats.clicks;
+document.getElementById('statEarned').innerText=stats.earned;
+document.getElementById('statSpent').innerText=stats.spent;
+document.getElementById('statSkins').innerText=inventory.length;
 }
 
 function clickChicken(){
-coins += clickPower;
-xp += clickPower;
-// ✅ ВИПРАВЛЕНО: Цикл замість простої умови (для XP > 1000)
-while(xp>=1000){xp-=1000;level++;}
+coins+=clickPower;
+xp+=clickPower;
+stats.clicks++;
+stats.earned+=clickPower;
+if(xp>=1000){xp-=1000;level++;}
 updateUI();save();
 }
 
 function upgradeClick(){
-if(coins>=100){coins-=100;clickPower++;updateUI();save();}
+if(coins>=100){coins-=100;clickPower++;stats.spent+=100;updateUI();save();}
 }
 
 function createShop(){
@@ -98,30 +120,33 @@ div.appendChild(b);
 }
 
 function buyWeapon(name,price){
-if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save();}
+if(coins>=price){coins-=price;stats.spent+=price;inventory.push(name);updateInventory();updateUI();save();}
 }
 
 function updateInventory(){
 let list=document.getElementById('inventoryList');
 list.innerHTML='';
-inventory.forEach(i=>{
-let li=document.createElement('li');
-li.innerText=i;
-list.appendChild(li);
-});
+inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;list.appendChild(li);});
+}
+
+function openCase(type){
+let result='';
+if(type==='pro'){if(coins<2000)return;coins-=2000;stats.spent+=2000;result='💰 або скін';}
+if(type==='den'){if(coins<50000)return;coins-=50000;stats.spent+=50000;result='🔥 секретний';}
+if(type==='free'){result='💰 бонус';stats.earned+=500;coins+=500;}
+if(type==='zcy'){if(coins<100000)return;coins-=100000;stats.spent+=100000;result='ZCY11K';}
+
+inventory.push(result);
+document.getElementById('caseResult').innerText='Випало: '+result;
+updateInventory();updateUI();save();
 }
 
 function usePromo(){
-let input=document.getElementById('promoInput').value.trim();
+let input=document.getElementById('promoInput').value;
 let msg=document.getElementById('promoMsg');
-if(!input){msg.innerText='Введіть промокод';return;}
 if(usedPromos.includes(input)){msg.innerText='Вже використано';return;}
-if(promoCodes.includes(input)){
-coins+=2090;usedPromos.push(input);msg.innerText='✅ +2090 монет!';
-}else{msg.innerText='❌ Невалідний промокод';}
-// ✅ ВИПРАВЛЕНО: Очищуємо поле вводу та повертаємо фокус
-document.getElementById('promoInput').value='';
-document.getElementById('promoInput').focus();
+if(promoCodes.includes(input)){coins+=2090;stats.earned+=2090;usedPromos.push(input);msg.innerText='+2090';}
+else{msg.innerText='❌';}
 updateUI();save();
 }
 
@@ -130,16 +155,12 @@ document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
 document.getElementById(t).classList.add('active');
 }
 
-// EVENTS (стабільно)
+// EVENTS
 document.getElementById('clickBtn').addEventListener('click',clickChicken);
 document.getElementById('upgradeBtn').addEventListener('click',upgradeClick);
 document.getElementById('promoBtn').addEventListener('click',usePromo);
-
-// клік по самій курці теж працює
 document.getElementById('avatarImg').addEventListener('click',clickChicken);
-
-// ✅ ВИДАЛЕНО: Мертвий код initAvatars() був непотрібний
 
 load();createShop();updateInventory();updateUI();
 </script></body>
-</html>
+  </html>
