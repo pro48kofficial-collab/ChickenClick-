@@ -95,12 +95,14 @@ updateUI();save();
 function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save()}}
 
 function createShop(){
-weaponsEl.innerHTML='';
-weapons.forEach(w=>{
-let b=document.createElement('button');
-b.innerText=w[0]+' ('+w[1]+')';
-b.onclick=()=>buyWeapon(w[0],w[1]);
-weaponsEl.appendChild(b);
+  let weaponsEl = document.getElementById('weapons');
+  weaponsEl.innerHTML='';
+  weapons.forEach(w=>{
+    let b=document.createElement('button');
+    b.innerText=w[0]+' ('+w[1]+')';
+    b.onclick=()=>buyWeapon(w[0],w[1]);
+    weaponsEl.appendChild(b);
+  });
 })
 }
 
@@ -109,8 +111,14 @@ if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();
 }
 
 function updateInventory(){
-inventoryList.innerHTML='';
-inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;inventoryList.appendChild(li)})
+  let inventoryList = document.getElementById('inventoryList');
+  inventoryList.innerHTML='';
+  inventory.forEach(i=>{
+    let li=document.createElement('li');
+    li.innerText=i;
+    inventoryList.appendChild(li);
+  });
+})
 }
 
 function openCase(price){
@@ -124,12 +132,25 @@ updateInventory();updateUI();save();
 }
 
 function usePromo(){
-let c=promoInput.value;
-if(usedPromos.includes(c))return promoMsg.innerText='Вже використано';
-if(promoCodes.includes(c)){
-coins+=2090;
-usedPromos.push(c);
-promoMsg.innerText='+2090 коінів';
+  let promoInput = document.getElementById('promoInput');
+  let promoMsg = document.getElementById('promoMsg');
+  let c = promoInput.value;
+
+  if(usedPromos.includes(c)){
+    promoMsg.innerText='Вже використано';
+    return;
+  }
+
+  if(promoCodes.includes(c)){
+    coins += 2090;
+    usedPromos.push(c);
+    promoMsg.innerText='+2090 коінів';
+  } else {
+    promoMsg.innerText='❌';
+  }
+
+  updateUI();
+  save();
 }else promoMsg.innerText='❌';
 updateUI();save();
 }
@@ -140,4 +161,4 @@ function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.rem
 
 load();createShop();updateInventory();updateUI();
 </script></body>
-  </html>
+</html>
