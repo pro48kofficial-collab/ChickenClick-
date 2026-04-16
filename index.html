@@ -2,65 +2,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker FINAL</title>
+<title>Chicken Clicker STABLE</title>
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#0ff}
 .container{display:flex;flex-direction:column;height:100vh}
-.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
-.nav button{background:#000;color:#0ff;border:1px solid #0ff;border-radius:10px;padding:8px}
 .content{flex:1;text-align:center;padding-bottom:80px}
+.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
+button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
 img{width:140px;cursor:pointer;margin:5px}
 .tab{display:none}
 .active{display:block}
-button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
 </style>
 </head>
 <body>
-<div class="container">
-<div class="content"><div id="main" class="tab active">
+<div class="container"><div class="content"><div id="main" class="tab active">
 <h2>💰 <span id="coins">0</span></h2>
 <h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" onclick="clickChicken()">
+<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="chicken">
 <p>Клік: <span id="clickPower">1</span></p>
+<button id="clickBtn">Тапнути 🐔</button>
 </div><div id="shop" class="tab">
 <h2>🛒 Магазин</h2>
-<button onclick="upgradeClick()">⚡ Апгрейд (100)</button>
+<button id="upgradeBtn">⚡ Апгрейд (100)</button>
 <div id="weapons"></div>
 </div><div id="inventory" class="tab">
 <h2>🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
-</div><div id="cases" class="tab">
-<h2>🎁 Кейси</h2>
-<button onclick="openCase(300)">Звичайний (300)</button>
-<button onclick="openCase(700)">Рідкісний (700)</button>
-<button onclick="openCase(1500)">Легендарний (1500)</button>
-<p id="caseResult"></p>
 </div><div id="promo" class="tab">
 <h2>🎟️ Промокоди</h2>
-<input id="promoInput"><button onclick="usePromo()">OK</button>
+<input id="promoInput"><button id="promoBtn">OK</button>
 <p id="promoMsg"></p>
-</div><div id="avatar" class="tab">
-<h2>🐔 Аватар</h2>
-<img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" onclick="setAvatar(this.src)">
-<img src="https://cdn-icons-png.flaticon.com/512/1998/1998610.png" onclick="setAvatar(this.src)">
-<img src="https://cdn-icons-png.flaticon.com/512/3069/3069172.png" onclick="setAvatar(this.src)">
-<img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" onclick="setAvatar(this.src)">
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
-<button onclick="openTab('cases')">🎁</button>
 <button onclick="openTab('inventory')">🎒</button>
 <button onclick="openTab('promo')">🎟️</button>
-<button onclick="openTab('avatar')">🐔</button>
-</div>
-</div><script>
+</div></div><script>
 let coins=0,clickPower=1,xp=0,level=1;
-let inventory=[],usedPromos=[];
+let inventory=[];
+let usedPromos=[];
 
 let weapons=[
-['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000],
-['⚡ Лазер',5000],['🌌 Плазма',10000],['🌠 Галактична',20000],['💎 Міфічна',50000],
-['👑 Бог',100000],['🧨 Бомба',3000],['🗡️ Ніж',150],['🚀 Ракета',8000]
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
 ];
 
 let promoCodes=[
@@ -68,97 +51,87 @@ let promoCodes=[
 ];
 
 function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory}))}
-function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}}
+function load(){
+let d=JSON.parse(localStorage.getItem('game'));
+if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}
+}
 
 function updateUI(){
-  document.getElementById('coins').innerText = coins;
-  document.getElementById('xp').innerText = xp;
-  document.getElementById('level').innerText = level;
-  document.getElementById('clickPower').innerText = clickPower;
+document.getElementById('coins').innerText=coins;
+document.getElementById('xp').innerText=xp;
+document.getElementById('level').innerText=level;
+document.getElementById('clickPower').innerText=clickPower;
 }
 
 function clickChicken(){
-coins += clickPower; // коіни за клік
-xp += clickPower;   // XP теж залежить від сили кліку
-
-if(xp >= 1000){
-  xp = xp - 1000;
-  level++;
-}
-
-updateUI();
-save();
-}
+coins += clickPower;
+xp += clickPower;
+if(xp>=1000){xp-=1000;level++;}
 updateUI();save();
 }
 
-function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save()}}
+function upgradeClick(){
+if(coins>=100){coins-=100;clickPower++;updateUI();save();}
+}
 
 function createShop(){
-  let weaponsEl = document.getElementById('weapons');
-  weaponsEl.innerHTML='';
-  weapons.forEach(w=>{
-    let b=document.createElement('button');
-    b.innerText=w[0]+' ('+w[1]+')';
-    b.onclick=()=>buyWeapon(w[0],w[1]);
-    weaponsEl.appendChild(b);
-  });
-})
+let div=document.getElementById('weapons');
+div.innerHTML='';
+weapons.forEach(w=>{
+let b=document.createElement('button');
+b.innerText=w[0]+' ('+w[1]+')';
+b.onclick=function(){buyWeapon(w[0],w[1]);};
+div.appendChild(b);
+});
 }
 
 function buyWeapon(name,price){
-if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save()}
+if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save();}
 }
 
 function updateInventory(){
-  let inventoryList = document.getElementById('inventoryList');
-  inventoryList.innerHTML='';
-  inventory.forEach(i=>{
-    let li=document.createElement('li');
-    li.innerText=i;
-    inventoryList.appendChild(li);
-  });
-})
-}
-
-function openCase(price){
-if(coins>=price){
-coins-=price;
-let item=weapons[Math.floor(Math.random()*weapons.length)][0];
-inventory.push(item);
-caseResult.innerText='Випало: '+item;
-updateInventory();updateUI();save();
-}
+let list=document.getElementById('inventoryList');
+list.innerHTML='';
+inventory.forEach(i=>{
+let li=document.createElement('li');
+li.innerText=i;
+list.appendChild(li);
+});
 }
 
 function usePromo(){
-  let promoInput = document.getElementById('promoInput');
-  let promoMsg = document.getElementById('promoMsg');
-  let c = promoInput.value;
-
-  if(usedPromos.includes(c)){
-    promoMsg.innerText='Вже використано';
-    return;
-  }
-
-  if(promoCodes.includes(c)){
-    coins += 2090;
-    usedPromos.push(c);
-    promoMsg.innerText='+2090 коінів';
-  } else {
-    promoMsg.innerText='❌';
-  }
-
-  updateUI();
-  save();
-}else promoMsg.innerText='❌';
+let input=document.getElementById('promoInput').value;
+let msg=document.getElementById('promoMsg');
+if(usedPromos.includes(input)){msg.innerText='Вже використано';return;}
+if(promoCodes.includes(input)){
+coins+=2090;usedPromos.push(input);msg.innerText='+2090';
+}else{msg.innerText='❌';}
 updateUI();save();
 }
 
-function setAvatar(src){avatarImg.src=src}
+function openTab(t){
+document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+document.getElementById(t).classList.add('active');
+}
 
-function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
+// EVENTS (стабільно)
+document.getElementById('clickBtn').addEventListener('click',clickChicken);
+document.getElementById('upgradeBtn').addEventListener('click',upgradeClick);
+document.getElementById('promoBtn').addEventListener('click',usePromo);
 
-load();createShop();updateInventory();updateUI();
+// клік по самій курці теж працює
+document.getElementById('avatarImg').addEventListener('click',clickChicken);
+
+// вибір аватарок
+function initAvatars(){
+  const avatarTab = document.getElementById('avatar');
+  if(!avatarTab) return;
+  const imgs = avatarTab.querySelectorAll('img');
+  imgs.forEach(img=>{
+    img.addEventListener('click',()=>setAvatar(img.src));
+  });
+}
+
+load();createShop();updateInventory();updateUI();initAvatars();
 </script></body>
-</html>
+  </html>
