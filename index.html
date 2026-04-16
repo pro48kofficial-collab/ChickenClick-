@@ -7,11 +7,12 @@
 body{margin:0;font-family:Arial;background:#020617;color:#0ff}
 .container{display:flex;flex-direction:column;height:100vh}
 .content{flex:1;text-align:center;padding-bottom:80px}
-.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
-button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
+.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%;box-sizing:border-box}
+button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff;cursor:pointer}
 img{width:140px;cursor:pointer;margin:5px}
 .tab{display:none}
 .active{display:block}
+input#promoInput{padding:8px;border:1px solid #0ff;background:#000;color:#0ff;border-radius:5px;margin:5px;font-size:14px}
 </style>
 </head>
 <body>
@@ -30,7 +31,7 @@ img{width:140px;cursor:pointer;margin:5px}
 <ul id="inventoryList"></ul>
 </div><div id="promo" class="tab">
 <h2>🎟️ Промокоди</h2>
-<input id="promoInput"><button id="promoBtn">OK</button>
+<input id="promoInput" placeholder="Введіть промокод"><button id="promoBtn">OK</button>
 <p id="promoMsg"></p>
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
@@ -50,18 +51,20 @@ let promoCodes=[
 'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift'
 ];
 
-// ✅ ВИПРАВЛЕНО: Додано usedPromos в збереження
+// ✅ ВИПРАВЛЕНО: Безпечне завантаження з обробкою помилок
 function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,usedPromos}))}
 function load(){
-let d=JSON.parse(localStorage.getItem('game'));
-if(d){
-  coins=d.coins;
-  clickPower=d.clickPower;
-  xp=d.xp;
-  level=d.level;
-  inventory=d.inventory;
-  usedPromos=d.usedPromos||[]; // ✅ ВИПРАВЛЕНО: Завантажуємо використані промокоди
-}
+  try {
+    let d=JSON.parse(localStorage.getItem('game')||'{}');
+    coins=d.coins||0;
+    clickPower=d.clickPower||1;
+    xp=d.xp||0;
+    level=d.level||1;
+    inventory=d.inventory||[];
+    usedPromos=d.usedPromos||[];
+  } catch(e) {
+    console.error('Помилка завантаження:', e);
+  }
 }
 
 function updateUI(){
@@ -109,14 +112,16 @@ list.appendChild(li);
 }
 
 function usePromo(){
-let input=document.getElementById('promoInput').value;
+let input=document.getElementById('promoInput').value.trim();
 let msg=document.getElementById('promoMsg');
+if(!input){msg.innerText='Введіть промокод';return;}
 if(usedPromos.includes(input)){msg.innerText='Вже використано';return;}
 if(promoCodes.includes(input)){
-coins+=2090;usedPromos.push(input);msg.innerText='+2090';
-}else{msg.innerText='❌';}
-// ✅ ВИПРАВЛЕНО: Очищуємо поле вводу
+coins+=2090;usedPromos.push(input);msg.innerText='✅ +2090 монет!';
+}else{msg.innerText='❌ Невалідний промокод';}
+// ✅ ВИПРАВЛЕНО: Очищуємо поле вводу та повертаємо фокус
 document.getElementById('promoInput').value='';
+document.getElementById('promoInput').focus();
 updateUI();save();
 }
 
@@ -133,16 +138,8 @@ document.getElementById('promoBtn').addEventListener('click',usePromo);
 // клік по самій курці теж працює
 document.getElementById('avatarImg').addEventListener('click',clickChicken);
 
-// вибір аватарок
-function initAvatars(){
-  const avatarTab = document.getElementById('avatar');
-  if(!avatarTab) return;
-  const imgs = avatarTab.querySelectorAll('img');
-  imgs.forEach(img=>{
-    img.addEventListener('click',()=>setAvatar(img.src));
-  });
-}
+// ✅ ВИДАЛЕНО: Мертвий код initAvatars() був непотрібний
 
-load();createShop();updateInventory();updateUI();initAvatars();
+load();createShop();updateInventory();updateUI();
 </script></body>
-  </html>
+</html>
