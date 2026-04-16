@@ -50,10 +50,18 @@ let promoCodes=[
 'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift'
 ];
 
-function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory}))}
+// ✅ ВИПРАВЛЕНО: Додано usedPromos в збереження
+function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,usedPromos}))}
 function load(){
 let d=JSON.parse(localStorage.getItem('game'));
-if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}
+if(d){
+  coins=d.coins;
+  clickPower=d.clickPower;
+  xp=d.xp;
+  level=d.level;
+  inventory=d.inventory;
+  usedPromos=d.usedPromos||[]; // ✅ ВИПРАВЛЕНО: Завантажуємо використані промокоди
+}
 }
 
 function updateUI(){
@@ -66,7 +74,8 @@ document.getElementById('clickPower').innerText=clickPower;
 function clickChicken(){
 coins += clickPower;
 xp += clickPower;
-if(xp>=1000){xp-=1000;level++;}
+// ✅ ВИПРАВЛЕНО: Цикл замість простої умови (для XP > 1000)
+while(xp>=1000){xp-=1000;level++;}
 updateUI();save();
 }
 
@@ -106,6 +115,8 @@ if(usedPromos.includes(input)){msg.innerText='Вже використано';ret
 if(promoCodes.includes(input)){
 coins+=2090;usedPromos.push(input);msg.innerText='+2090';
 }else{msg.innerText='❌';}
+// ✅ ВИПРАВЛЕНО: Очищуємо поле вводу
+document.getElementById('promoInput').value='';
 updateUI();save();
 }
 
@@ -134,4 +145,4 @@ function initAvatars(){
 
 load();createShop();updateInventory();updateUI();initAvatars();
 </script></body>
-  </html>
+        </html>
