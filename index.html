@@ -1,36 +1,26 @@
 <!DOCTYPE html><html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Chicken Clicker ULTIMATE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicken Clicker MOBILE</title>
 <style>
-body{margin:0;font-family:Arial;background:#020617;color:#0ff;overflow:hidden}
-.container{display:flex;height:100vh}
-.sidebar{width:200px;background:#020617;border-right:2px solid #0ff;padding:10px}
-.sidebar button{display:block;width:100%;margin:5px 0;padding:10px;background:#000;color:#0ff;border:1px solid #0ff;border-radius:10px}
-.content{flex:1;text-align:center;padding:10px}
-img{width:200px;cursor:pointer;transition:0.1s}
-img:active{transform:scale(0.9)}
+body{margin:0;font-family:Arial;background:#020617;color:#0ff}
+.container{display:flex;flex-direction:column;height:100vh}
+.nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
+.nav button{background:#000;color:#0ff;border:1px solid #0ff;border-radius:10px;padding:8px}
+.content{flex:1;text-align:center;padding-bottom:70px}
+img{width:150px;cursor:pointer}
 .tab{display:none}
 .active{display:block}
-.neon{color:#0ff;text-shadow:0 0 5px #0ff,0 0 20px #0ff}
-.caseAnim{font-size:30px;animation:spin 1s linear infinite}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.neon{color:#0ff;text-shadow:0 0 5px #0ff,0 0 15px #0ff}
+button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
 </style>
 </head>
 <body>
-<div class="container"><div class="sidebar">
-<button onclick="openTab('main')">🐔</button>
-<button onclick="openTab('shop')">🛒</button>
-<button onclick="openTab('inventory')">🎒</button>
-<button onclick="openTab('cases')">🎁</button>
-<button onclick="openTab('promo')">🎟️</button>
-<button onclick="openTab('event')">🏆</button>
-<button onclick="openTab('avatar')">🎨</button>
-<button onclick="openTab('leaderboard')">👑</button>
-</div><div class="content"><div id="main" class="tab active">
+<div class="container"><div class="content"><div id="main" class="tab active">
 <h2 class="neon">💰 <span id="coins">0</span></h2>
 <h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<img id="avatarImg" src="https://i.imgur.com/4AiXzf8.png" onclick="clickChicken()">
+<img id="avatarImg" src="https://via.placeholder.com/150" onclick="clickChicken()">
 <p>Клік: <span id="clickPower">1</span></p>
 </div><div id="shop" class="tab">
 <h2 class="neon">🛒 Магазин</h2>
@@ -39,82 +29,74 @@ img:active{transform:scale(0.9)}
 </div><div id="inventory" class="tab">
 <h2 class="neon">🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
-</div><div id="cases" class="tab">
-<h2 class="neon">🎁 Кейси</h2>
-<button onclick="openCase()">Відкрити (300)</button>
-<p id="caseResult"></p>
-</div><div id="promo" class="tab">
-<h2 class="neon">🎟️ Промо</h2>
-<input id="promoInput"><button onclick="usePromo()">OK</button>
-<p id="promoMsg"></p>
-</div><div id="event" class="tab">
-<h2 class="neon">🏆 Івент</h2>
-<p id="eventReward"></p>
 </div><div id="avatar" class="tab">
 <h2 class="neon">🎨 Аватар</h2>
-<img src="https://i.imgur.com/4AiXzf8.png" onclick="setAvatar(this.src)">
-<img src="https://i.imgur.com/Z6X6G6p.png" onclick="setAvatar(this.src)">
-<img src="https://i.imgur.com/oYiTqum.png" onclick="setAvatar(this.src)">
-</div><div id="leaderboard" class="tab">
-<h2 class="neon">👑 Лідери</h2>
-<ol id="leaderboardList"></ol>
-</div></div>
-</div><audio id="clickSound" src="https://www.soundjay.com/button/beep-07.wav"></audio> <audio id="caseSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"></audio>
-
-<script>
+<img src="https://via.placeholder.com/150/ff0" onclick="setAvatar(this.src)">
+<img src="https://via.placeholder.com/150/0ff" onclick="setAvatar(this.src)">
+<img src="https://via.placeholder.com/150/f0f" onclick="setAvatar(this.src)">
+</div></div><div class="nav">
+<button onclick="openTab('main')">🐔</button>
+<button onclick="openTab('shop')">🛒</button>
+<button onclick="openTab('inventory')">🎒</button>
+<button onclick="openTab('avatar')">🎨</button>
+</div></div><script>
 let coins=0,clickPower=1,xp=0,level=1;
-let inventory=[],usedPromos=[];
+let inventory=[];
 
 let weapons=[
-['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000],
-['⚡ Лазер',5000],['🌌 Плазма',10000],['🌠 Галактична',20000],['💎 Міфічна',50000]
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
 ];
 
-function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory}))}
-function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){coins=d.coins;clickPower=d.clickPower;xp=d.xp;level=d.level;inventory=d.inventory}}
-
-function updateUI(){coinsEl.innerText=coins;clickPowerEl.innerText=clickPower;xpEl.innerText=xp;levelEl.innerText=level}
-
-function clickChicken(){
-clickSound.play();
-coins+=clickPower;xp++;
-if(xp>=1000){xp=0;level++;coins+=500}
-animateClick();updateUI();save();updateLeaderboard();checkEvent();
+function updateUI(){
+document.getElementById('coins').innerText=coins;
+document.getElementById('clickPower').innerText=clickPower;
+document.getElementById('xp').innerText=xp;
+document.getElementById('level').innerText=level;
 }
 
-function animateClick(){avatarImg.style.transform='scale(1.2)';setTimeout(()=>avatarImg.style.transform='scale(1)',100)}
+function clickChicken(){
+coins+=clickPower;
+xp+=1;
+if(xp>=1000){xp=0;level++}
+updateUI();
+}
 
-function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save()}}
+function upgradeClick(){
+if(coins>=100){coins-=100;clickPower++;updateUI()}
+}
 
-function createShop(){weaponsEl.innerHTML='';weapons.forEach(w=>{let b=document.createElement('button');b.innerText=w[0]+' ('+w[1]+')';b.onclick=()=>buyWeapon(w[0],w[1]);weaponsEl.appendChild(b);})}
+function createShop(){
+let div=document.getElementById('weapons');
+div.innerHTML='';
+weapons.forEach(w=>{
+let b=document.createElement('button');
+b.innerText=w[0]+' ('+w[1]+')';
+b.onclick=()=>buyWeapon(w[0],w[1]);
+div.appendChild(b);
+})
+}
 
-function buyWeapon(name,price){if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI();save()}}
+function buyWeapon(name,price){
+if(coins>=price){coins-=price;inventory.push(name);updateInventory();updateUI()}
+}
 
-function updateInventory(){inventoryList.innerHTML='';inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;inventoryList.appendChild(li)})}
+function updateInventory(){
+let list=document.getElementById('inventoryList');
+list.innerHTML='';
+inventory.forEach(i=>{
+let li=document.createElement('li');li.innerText=i;list.appendChild(li)
+})
+}
 
-function openCase(){
-if(coins>=300){coins-=300;caseResult.innerHTML='<span class="caseAnim">🎰</span>';
-setTimeout(()=>{
-let item=weapons[Math.floor(Math.random()*weapons.length)][0];
-inventory.push(item);
-caseResult.innerText='Випало: '+item;
-caseSound.play();
-updateInventory();updateUI();save();
-},1500);
-}}
+function setAvatar(src){
+document.getElementById('avatarImg').src=src;
+}
 
-function usePromo(){let c=promoInput.value;if(usedPromos.includes(c))return promoMsg.innerText='Вже';if(c=='Pro48k'||c=='ZCY11K'){coins+=1090;usedPromos.push(c);promoMsg.innerText='+1090'}else promoMsg.innerText='❌';updateUI();save();}
+function openTab(t){
+document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+document.getElementById(t).classList.add('active');
+}
 
-function checkEvent(){if(level==5){coins+=500;eventReward.innerText='+500'}if(level==10){inventory.push('💎 Епік');eventReward.innerText='Епік'}if(level==20){inventory.push('👑 Легенда');eventReward.innerText='Легенда'}}
-
-function setAvatar(src){avatarImg.src=src}
-
-function updateLeaderboard(){let lb=JSON.parse(localStorage.getItem('lb'))||[];lb.push({score:coins});lb=lb.sort((a,b)=>b.score-a.score).slice(0,5);localStorage.setItem('lb',JSON.stringify(lb));renderLeaderboard();}
-
-function renderLeaderboard(){let lb=JSON.parse(localStorage.getItem('lb'))||[];leaderboardList.innerHTML='';lb.forEach(p=>{let li=document.createElement('li');li.innerText=p.score;leaderboardList.appendChild(li)})}
-
-function openTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
-
-load();createShop();updateInventory();updateUI();renderLeaderboard();
+createShop();updateInventory();updateUI();
 </script></body>
-  </html>
+        </html>
