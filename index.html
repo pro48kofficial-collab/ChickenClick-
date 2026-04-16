@@ -2,23 +2,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker FINAL++</title>
+<title>Chicken Clicker EVENT+</title>
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#0ff}
 .container{display:flex;flex-direction:column;height:100vh}
-.content{flex:1;text-align:center;padding-bottom:80px}
+.content{flex:1;text-align:center;padding-bottom:90px}
 .nav{display:flex;justify-content:space-around;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
 button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:#000;color:#0ff}
-img{width:140px;cursor:pointer;margin:5px}
+img{width:120px;cursor:pointer;margin:5px}
 .tab{display:none}
 .active{display:block}
+.avatarBtn{font-size:26px}
 </style>
 </head>
 <body>
 <div class="container"><div class="content"><div id="main" class="tab active">
-<h2>💰 <span id="coins">0</span></h2>
+<h2>💰 <span id="coins">0</span> | 🪙 Голда: <span id="gold">0</span></h2>
 <h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<img id="avatarImg" src="https://cdn-icons-png.flaticon.com/512/616/616408.png">
+<div id="profileAvatar" style="font-size:40px">🐔</div>
 <p>Клік: <span id="clickPower">1</span></p>
 <button id="clickBtn">Тапнути 🐔</button>
 </div><div id="shop" class="tab">
@@ -29,9 +30,15 @@ img{width:140px;cursor:pointer;margin:5px}
 <h2>🎁 Кейси</h2>
 <button onclick="openCase('pro')">PRO48K (2000)</button>
 <button onclick="openCase('den')">Den (50000)</button>
-<button onclick="openCase('free')">Free (0)</button>
+<button onclick="openCase('free')">Free</button>
 <button onclick="openCase('zcy')">ZCY11K (100000)</button>
 <p id="caseResult"></p>
+</div><div id="event" class="tab">
+<h2>⚡ Івент</h2>
+<p>Голда: <span id="eventGold">0</span></p>
+<button onclick="buyEvent('skin')">🎨 Скін (50 голди)</button>
+<button onclick="buyEvent('case')">🎁 Sand of Time (100 голди)</button>
+<p id="eventResult"></p>
 </div><div id="inventory" class="tab">
 <h2>🎒 Інвентар</h2>
 <ul id="inventoryList"></ul>
@@ -39,28 +46,34 @@ img{width:140px;cursor:pointer;margin:5px}
 <h2>🎟️ Промокоди</h2>
 <input id="promoInput"><button id="promoBtn">OK</button>
 <p id="promoMsg"></p>
-</div><div id="stats" class="tab">
-<h2>📊 Статистика</h2>
-<input id="nickname" placeholder="Нік">
-<p>Кліки: <span id="statClicks">0</span></p>
-<p>Зароблено: <span id="statEarned">0</span></p>
-<p>Витрачено: <span id="statSpent">0</span></p>
-<p>Скіни: <span id="statSkins">0</span></p>
+</div><div id="profile" class="tab">
+<h2>👤 Профіль</h2>
+<div>
+<button class="avatarBtn" onclick="setProfileAvatar('🍰')">🍰</button>
+<button class="avatarBtn" onclick="setProfileAvatar('💀')">💀</button>
+<button class="avatarBtn" onclick="setProfileAvatar('🥳')">🥳</button>
+<button class="avatarBtn" onclick="setProfileAvatar('⛄')">⛄</button>
+<button class="avatarBtn" onclick="setProfileAvatar('🤖')">🤖</button>
+<button class="avatarBtn" onclick="setProfileAvatar('⚡')">⚡</button>
+<button class="avatarBtn" onclick="setProfileAvatar('🌪️')">🌪️</button>
+</div>
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
 <button onclick="openTab('cases')">🎁</button>
+<button onclick="openTab('event')">⚡</button>
 <button onclick="openTab('inventory')">🎒</button>
 <button onclick="openTab('promo')">🎟️</button>
-<button onclick="openTab('stats')">📊</button>
+<button onclick="openTab('profile')">👤</button>
 </div>
 </div><script>
-let coins=0,clickPower=1,xp=0,level=1;
-let inventory=[],usedPromos=[];
+let coins=0,clickPower=1,xp=0,level=1,gold=0;
+let inventory=[],usedPromos=[],profileAvatar='🐔';
 let stats={clicks:0,earned:0,spent:0};
 
 let weapons=[
-['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000]
+['🔫 Пістолет',200],['💥 SMG',400],['🔥 АК-47',1200],['🎯 Снайперка',2000],
+['⚡ Лазер',5000],['🌌 Плазма',10000],['🚀 Ракета',8000],['🧨 Бомба',3000]
 ];
 
 let promoCodes=[
@@ -68,18 +81,15 @@ let promoCodes=[
 ];
 
 function save(){
-localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,stats}))
+localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,stats,gold,profileAvatar}))
 }
 
 function load(){
 let d=JSON.parse(localStorage.getItem('game'));
 if(d){
-coins=d.coins||0;
-clickPower=d.clickPower||1;
-xp=d.xp||0;
-level=d.level||1;
-inventory=d.inventory||[];
-stats=d.stats||{clicks:0,earned:0,spent:0};
+coins=d.coins||0;clickPower=d.clickPower||1;xp=d.xp||0;level=d.level||1;
+inventory=d.inventory||[];stats=d.stats||{clicks:0,earned:0,spent:0};
+gold=d.gold||0;profileAvatar=d.profileAvatar||'🐔';
 }
 }
 
@@ -88,25 +98,18 @@ document.getElementById('coins').innerText=coins;
 document.getElementById('xp').innerText=xp;
 document.getElementById('level').innerText=level;
 document.getElementById('clickPower').innerText=clickPower;
-
-document.getElementById('statClicks').innerText=stats.clicks;
-document.getElementById('statEarned').innerText=stats.earned;
-document.getElementById('statSpent').innerText=stats.spent;
-document.getElementById('statSkins').innerText=inventory.length;
+document.getElementById('gold').innerText=gold;
+document.getElementById('eventGold').innerText=gold;
+document.getElementById('profileAvatar').innerText=profileAvatar;
 }
 
 function clickChicken(){
-coins+=clickPower;
-xp+=clickPower;
-stats.clicks++;
-stats.earned+=clickPower;
+coins+=clickPower;xp+=clickPower;stats.clicks++;stats.earned+=clickPower;
 if(xp>=1000){xp-=1000;level++;}
 updateUI();save();
 }
 
-function upgradeClick(){
-if(coins>=100){coins-=100;clickPower++;stats.spent+=100;updateUI();save();}
-}
+function upgradeClick(){if(coins>=100){coins-=100;clickPower++;stats.spent+=100;updateUI();save();}}
 
 function createShop(){
 let div=document.getElementById('weapons');
@@ -119,9 +122,7 @@ div.appendChild(b);
 });
 }
 
-function buyWeapon(name,price){
-if(coins>=price){coins-=price;stats.spent+=price;inventory.push(name);updateInventory();updateUI();save();}
-}
+function buyWeapon(name,price){if(coins>=price){coins-=price;stats.spent+=price;inventory.push(name);updateInventory();updateUI();save();}}
 
 function updateInventory(){
 let list=document.getElementById('inventoryList');
@@ -131,35 +132,42 @@ inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;list.ap
 
 function openCase(type){
 let result='';
-if(type==='pro'){if(coins<2000)return;coins-=2000;stats.spent+=2000;result='💰 або скін';}
-if(type==='den'){if(coins<50000)return;coins-=50000;stats.spent+=50000;result='🔥 секретний';}
-if(type==='free'){result='💰 бонус';stats.earned+=500;coins+=500;}
-if(type==='zcy'){if(coins<100000)return;coins-=100000;stats.spent+=100000;result='ZCY11K';}
-
+if(type==='pro'){if(coins<2000)return;coins-=2000;result='💰/Скін';}
+if(type==='den'){if(coins<50000)return;coins-=50000;result='🔥 секретний';}
+if(type==='free'){result='💰 бонус';coins+=500;}
+if(type==='zcy'){if(coins<100000)return;coins-=100000;result='ZCY11K';}
 inventory.push(result);
 document.getElementById('caseResult').innerText='Випало: '+result;
+updateInventory();updateUI();save();
+}
+
+function buyEvent(type){
+let res='';
+if(type==='skin'){if(gold<50)return;gold-=50;res='🎨 Івент скін';}
+if(type==='case'){if(gold<100)return;gold-=100;res='⏳ Sand of Time';}
+inventory.push(res);
+document.getElementById('eventResult').innerText='Отримано: '+res;
 updateInventory();updateUI();save();
 }
 
 function usePromo(){
 let input=document.getElementById('promoInput').value;
 let msg=document.getElementById('promoMsg');
+if(input==='event'){gold+=100;msg.innerText='+100 голди';updateUI();save();return;}
 if(usedPromos.includes(input)){msg.innerText='Вже використано';return;}
 if(promoCodes.includes(input)){coins+=2090;stats.earned+=2090;usedPromos.push(input);msg.innerText='+2090';}
 else{msg.innerText='❌';}
 updateUI();save();
 }
 
-function openTab(t){
-document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
-document.getElementById(t).classList.add('active');
-}
+function setProfileAvatar(a){profileAvatar=a;updateUI();save();}
+
+function openTab(t){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));document.getElementById(t).classList.add('active');}
 
 // EVENTS
 document.getElementById('clickBtn').addEventListener('click',clickChicken);
 document.getElementById('upgradeBtn').addEventListener('click',upgradeClick);
 document.getElementById('promoBtn').addEventListener('click',usePromo);
-document.getElementById('avatarImg').addEventListener('click',clickChicken);
 
 load();createShop();updateInventory();updateUI();
 </script></body>
