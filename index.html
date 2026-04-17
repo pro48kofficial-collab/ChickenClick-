@@ -2,7 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker ULTRA</title>
+<title>Chicken Clicker ULTIMATE v3.0</title>
 <style>
 :root{--bg:#020617;--text:#0ff;--card:#000}
 body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
@@ -13,7 +13,6 @@ body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
 button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:var(--card);color:var(--text)}
 .tab{display:none}
 .active{display:block}
-.avatarBtn{font-size:24px}
 .egg{font-size:60px;cursor:pointer}
 </style>
 </head>
@@ -21,58 +20,38 @@ button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;backgrou
 <div class="container">
 <div class="content"><div id="main" class="tab active">
 <h2>💰 <span id="coins">0</span> | 🪙 <span id="gold">0</span></h2>
-<h3><span id="nick" style="color:#0ff">Гравець</span> | LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<div id="profileAvatar" style="font-size:40px">🐔</div>
-<p>Клік: <span id="clickPower">1</span></p>
-<button id="clickBtn">Тапнути 🐔</button>
-</div><div id="shop" class="tab">
-<h2>🛒 Магазин</h2>
-<button id="upgradeBtn">⚡ Апгрейд (100)</button>
-<div id="weapons"></div>
-</div><div id="cases" class="tab">
-<h2>🎁 Кейси</h2>
-<button onclick="openCase(2000)">PRO48K</button>
-<button onclick="openCase(50000)">Den</button>
-<button onclick="openCase(0)">Free</button>
-<button onclick="openCase(100000)">ZCY11K</button>
-<p id="caseResult"></p>
-</div><div id="minigame" class="tab">
+<h3><span id="nick">Гравець</span> | LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
+<button id="clickBtn">🐔 Клік</button>
+<p>Версія: 3.0</p>
+</div><div id="shop" class="tab"><h2>🛒 Магазин</h2><div id="weapons"></div></div>
+<div id="market" class="tab"><h2>💱 Ринок</h2><button onclick="marketBuy()">Купити</button><p id="marketMsg"></p></div>
+<div id="cases" class="tab"><h2>🎁 Кейси</h2><button onclick="openCase(1000)">Відкрити</button><p id="caseResult"></p></div><div id="minigame" class="tab">
 <h2>🥚 Міні-гра</h2>
 <div id="egg" class="egg">🥚</div>
-<p>+50 коінів за яйце</p>
+<p>+50 коінів</p>
 </div><div id="event" class="tab">
 <h2>⚡ Івент</h2>
 <p>Голда: <span id="eventGold">0</span></p>
 <p>Клік: <span id="goldClick">0.5</span></p>
-<button id="goldClickBtn">Тапнути ⚡</button>
-<button onclick="upgradeGoldClick()">Апгрейд (50)</button>
-</div><div id="inventory" class="tab">
-<h2>🎒 Інвентар</h2>
-<ul id="inventoryList"></ul>
-</div><div id="promo" class="tab">
+<button id="goldClickBtn">⚡ Клік</button>
+<button onclick="upgradeGoldClick()">Апгрейд (50)</button><h3>Ексклюзив</h3>
+<button onclick="buyExclusive('👑',200)">👑 (200)</button>
+<button onclick="buyExclusive('🔥',300)">🔥 (300)</button>
+<button onclick="buyExclusive('🌌',500)">🌌 (500)</button>
+</div><div id="inventory" class="tab"><h2>🎒 Інвентар</h2><ul id="inventoryList"></ul></div><div id="promo" class="tab">
 <h2>🎟️ Промокоди</h2>
-<input id="promoInput"><button id="promoBtn">OK</button>
+<input id="promoInput"><button onclick="usePromo()">OK</button>
 <p id="promoMsg"></p>
 </div><div id="profile" class="tab">
 <h2>👤 Профіль</h2>
-<input id="nickInput" placeholder="Новий нік"><button onclick="setNick()">Змінити</button>
-<br><br>
-<input type="color" id="nickColor" onchange="setNickColor()">
-<br><br>
-<button onclick="resetGame()">Скинути прогрес</button>
-<br><br>
-<button onclick="toggleTheme()">Світлий/Темний</button>
-<br><br>
-<button class="avatarBtn" onclick="setProfileAvatar('🍰')">🍰</button>
-<button class="avatarBtn" onclick="setProfileAvatar('💀')">💀</button>
-<button class="avatarBtn" onclick="setProfileAvatar('🥳')">🥳</button>
-<button class="avatarBtn" onclick="setProfileAvatar('⛄')">⛄</button>
-<button class="avatarBtn" onclick="setProfileAvatar('🤖')">🤖</button>
-<button class="avatarBtn" onclick="setProfileAvatar('⚡')">⚡</button>
-<button class="avatarBtn" onclick="setProfileAvatar('🌪️')">🌪️</button>
+<input id="nickInput"><button onclick="setNick()">OK</button>
+<input type="color" onchange="setColor(this.value)">
+<button onclick="toggleTheme()">Тема</button>
+<button onclick="resetGame()">Скинути</button>
 </div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
+<button onclick="openTab('market')">💱</button>
 <button onclick="openTab('cases')">🎁</button>
 <button onclick="openTab('minigame')">🥚</button>
 <button onclick="openTab('event')">⚡</button>
@@ -81,59 +60,55 @@ button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;backgrou
 <button onclick="openTab('profile')">👤</button>
 </div>
 </div><script>
-let coins=0,clickPower=1,xp=0,level=1,gold=0,goldClick=0.5;
-let inventory=[],usedPromos=[],profileAvatar='🐔',nick='Гравець',nickColor='#0ff',theme='dark';
+let coins=0,xp=0,level=1,gold=0,goldClick=0.5;
+let inventory=[],nick='Гравець',nickColor='#0ff',theme='dark',usedPromos=[];
 let weapons=['🔫','💥','🔥','🎯','⚡','🌌','🚀','🧨'];
 
-function save(){localStorage.setItem('game',JSON.stringify({coins,clickPower,xp,level,inventory,gold,goldClick,profileAvatar,nick,nickColor,theme}))}
-function load(){let d=JSON.parse(localStorage.getItem('game'));if(d){Object.assign(window,d)}}
+let promoCodes=['Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift','YT','Case','Chicken','UPDATE','228','Error','Gold','Avatar','Morning','Night','Happy','Holiday','Winter','Pro','Hello'];
+
+function save(){localStorage.setItem('ultimate_save',JSON.stringify({coins,xp,level,gold,goldClick,inventory,nick,nickColor,theme,usedPromos}))}
+function load(){let d=JSON.parse(localStorage.getItem('ultimate_save'));if(d){Object.assign(window,d)}}
 
 function updateUI(){
 document.getElementById('coins').innerText=coins;
 document.getElementById('xp').innerText=xp;
 document.getElementById('level').innerText=level;
-document.getElementById('clickPower').innerText=clickPower;
 document.getElementById('gold').innerText=gold;
 document.getElementById('eventGold').innerText=gold;
 document.getElementById('goldClick').innerText=goldClick;
-document.getElementById('profileAvatar').innerText=profileAvatar;
 let n=document.getElementById('nick');n.innerText=nick;n.style.color=nickColor;
 }
 
-function clickChicken(){coins+=clickPower;xp+=clickPower;if(xp>=1000){xp-=1000;level++;}updateUI();save();}
-function upgradeClick(){if(coins>=100){coins-=100;clickPower++;updateUI();save();}}
-
-function createShop(){let d=document.getElementById('weapons');d.innerHTML='';weapons.forEach(w=>{let b=document.createElement('button');b.innerText=w;b.onclick=()=>buyWeapon(w);d.appendChild(b);});}
-function buyWeapon(w){inventory.push(w);updateInventory();save();}
-
-function openCase(price){if(coins<price)return;coins-=price;let drop=weapons[Math.floor(Math.random()*weapons.length)];inventory.push(drop);document.getElementById('caseResult').innerText='Випало: '+drop;updateInventory();updateUI();save();}
-
-function goldClickFunc(){gold+=goldClick;updateUI();save();}
+function clickChicken(){coins+=1;xp+=1;if(xp>=1000){xp=0;level++;}updateUI();save();}
 function upgradeGoldClick(){if(gold>=50){gold-=50;goldClick+=0.5;updateUI();save();}}
+function goldClickFunc(){gold+=goldClick;updateUI();save();}
 
-function updateInventory(){let l=document.getElementById('inventoryList');l.innerHTML='';inventory.forEach(i=>{let li=document.createElement('li');li.innerText=i;l.appendChild(li);});}
+function createShop(){let d=document.getElementById('weapons');d.innerHTML='';weapons.forEach(w=>{let b=document.createElement('button');b.innerText=w+' (100)';b.onclick=()=>buyWeapon(w,100);d.appendChild(b);});}
+function buyWeapon(w,p){if(coins>=p){coins-=p;inventory.push(w);updateInventory();updateUI();save();}}
 
-function usePromo(){let i=document.getElementById('promoInput').value;let m=document.getElementById('promoMsg');if(i==='event'){gold+=100;m.innerText='+100 голди';}else{coins+=2090;m.innerText='+2090';}updateUI();save();}
+function marketBuy(){let price=Math.floor(Math.random()*400)+100;if(coins<price)return;coins-=price;let w=weapons[Math.floor(Math.random()*weapons.length)];inventory.push(w);updateInventory();updateUI();save();}
 
-function setProfileAvatar(a){profileAvatar=a;updateUI();save();}
+function openCase(p){if(coins<p)return;coins-=p;let w=weapons[Math.floor(Math.random()*weapons.length)];inventory.push(w);updateInventory();updateUI();save();}
+
+function buyExclusive(w,p){if(gold<p)return;gold-=p;inventory.push(w);updateInventory();updateUI();save();}
+
+function updateInventory(){let l=document.getElementById('inventoryList');l.innerHTML='';inventory.forEach((i,idx)=>{let li=document.createElement('li');li.innerHTML=i+' <button onclick="sell('+idx+')">Продати</button>';l.appendChild(li);});}
+function sell(i){coins+=50;inventory.splice(i,1);updateInventory();updateUI();save();}
+
+function usePromo(){let i=document.getElementById('promoInput').value;let m=document.getElementById('promoMsg');if(usedPromos.includes(i)){m.innerText='Вже';return;}if(i==='event'){gold+=100;}else if(promoCodes.includes(i)){coins+=2090;usedPromos.push(i);}else{m.innerText='❌';return;}m.innerText='OK';updateUI();save();}
+
 function setNick(){nick=document.getElementById('nickInput').value||nick;updateUI();save();}
-function setNickColor(){nickColor=document.getElementById('nickColor').value;updateUI();save();}
-function resetGame(){localStorage.removeItem('game');location.reload();}
-
-function toggleTheme(){
-if(theme==='dark'){document.documentElement.style.setProperty('--bg','#fff');document.documentElement.style.setProperty('--text','#000');theme='light'}
-else{document.documentElement.style.setProperty('--bg','#020617');document.documentElement.style.setProperty('--text','#0ff');theme='dark'}
-save();}
+function setColor(c){nickColor=c;updateUI();save();}
+function toggleTheme(){if(theme==='dark'){document.documentElement.style.setProperty('--bg','#fff');document.documentElement.style.setProperty('--text','#000');theme='light'}else{document.documentElement.style.setProperty('--bg','#020617');document.documentElement.style.setProperty('--text','#0ff');theme='dark'}save();}
+function resetGame(){localStorage.removeItem('ultimate_save');location.reload();}
 
 function openTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById(t).classList.add('active');}
 
-// mini game
 function newEgg(){let e=document.getElementById('egg');e.onclick=()=>{coins+=50;newEgg();updateUI();save();};}
 
 // EVENTS
+
 document.getElementById('clickBtn').addEventListener('click',clickChicken);
-document.getElementById('upgradeBtn').addEventListener('click',upgradeClick);
-document.getElementById('promoBtn').addEventListener('click',usePromo);
 document.getElementById('goldClickBtn').addEventListener('click',goldClickFunc);
 
 load();createShop();updateInventory();updateUI();newEgg();
