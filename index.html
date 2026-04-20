@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="uk">
+<!DOCTYPE html><html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker v4.2</title>
-
+<title>Chicken Clicker v4.3</title>
 <style>
 :root{--bg:#020617;--text:#0ff;--card:#000}
 body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
@@ -18,65 +16,50 @@ button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;backgrou
 .egg{font-size:60px;cursor:pointer}
 </style>
 </head>
-
 <body>
 <div class="container">
-<div class="content">
-
-<div id="main" class="tab active">
+<div class="content"><div id="main" class="tab active">
 <h2>💰 <span id="coins">0</span> | 🪙 <span id="gold">0</span></h2>
-<h3>LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
+<h3><span id="nick">Гравець</span> | LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
 <button id="clickBtn">🐔 Клік</button>
-<p>Версія: 4.2</p>
-</div>
-
-<div id="shop" class="tab"><h2>🛒 Магазин</h2><div id="weapons"></div></div>
-<div id="market" class="tab"><h2>💱 Ринок</h2><div id="marketItems"></div></div>
-
-<div id="cases" class="tab">
+<p>Версія: 4.3</p>
+</div><div id="shop" class="tab"><h2>🛒 Магазин</h2><div id="weapons"></div></div>
+<div id="market" class="tab"><h2>💱 Ринок</h2><div id="marketItems"></div></div><div id="cases" class="tab">
 <h2>🎁 Кейси</h2>
 <button onclick="openCase('pro')">PRO48K</button>
 <button onclick="openCase('den')">Den</button>
 <button onclick="openCase('free')">Free</button>
 <button onclick="openCase('zcy')">ZCY11K</button>
 <p id="caseResult"></p>
-</div>
-
-<div id="minigame" class="tab">
+</div><div id="minigame" class="tab">
 <h2>🥚 Міні-гра</h2>
 <div id="egg" class="egg">🥚</div>
-</div>
-
-<div id="event" class="tab">
+</div><div id="event" class="tab">
 <h2>⚡ Івент</h2>
 <p>Голда: <span id="eventGold">0</span></p>
+<p>Клік: <span id="goldClick">0.5</span></p>
 <button id="goldClickBtn">⚡ Клік</button>
-</div>
-
-<div id="promo" class="tab">
+<button onclick="upgradeGoldClick()">Апгрейд (50)</button><h3>Ексклюзив</h3>
+<button onclick="buyEvent('👑',200)">👑 200</button>
+<button onclick="buyEvent('🔥',300)">🔥 300</button>
+<button onclick="buyEvent('🌌',500)">🌌 500</button>
+</div><div id="promo" class="tab">
 <h2>🎟️ Промокоди</h2>
-<input id="promoInput">
-<button onclick="usePromo()">OK</button>
+<input id="promoInput"><button onclick="usePromo()">OK</button>
 <p id="promoMsg"></p>
-</div>
-
-<div id="inventory" class="tab">
-<h2>🎒 Інвентар</h2>
-<ul id="inventoryList"></ul>
-</div>
-
-<div id="profile" class="tab">
-<h2>👤 Статистика</h2>
+</div><div id="inventory" class="tab"><h2>🎒 Інвентар</h2><ul id="inventoryList"></ul></div><div id="profile" class="tab">
+<h2>👤 Профіль</h2>
+<input id="nickInput" placeholder="Новий нік">
+<button onclick="setNick()">Змінити</button>
+<br><br>
+<input type="color" onchange="setColor(this.value)">
+<button onclick="resetGame()">Скинути прогрес</button><h3>Статистика</h3>
 <p>Кліки: <span id="statClicks">0</span></p>
 <p>Зароблено: <span id="statEarned">0</span></p>
 <p>Витрачено: <span id="statSpent">0</span></p>
 <p>Скіни: <span id="statItems">0</span></p>
 <p>Час: <span id="statTime">0</span></p>
-</div>
-
-</div>
-
-<div class="nav">
+</div></div><div class="nav">
 <button onclick="openTab('main')">🐔</button>
 <button onclick="openTab('shop')">🛒</button>
 <button onclick="openTab('market')">💱</button>
@@ -87,11 +70,10 @@ button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;backgrou
 <button onclick="openTab('inventory')">🎒</button>
 <button onclick="openTab('profile')">👤</button>
 </div>
-</div>
-
-<script>
-let coins=0,xp=0,level=1,gold=0;
+</div><script>
+let coins=0,xp=0,level=1,gold=0,goldClick=0.5;
 let inventory=[],usedPromos=[];
+let nick='Гравець',nickColor='#0ff';
 let stats={clicks:0,earned:0,spent:0,time:0};
 
 let weapons=[
@@ -100,34 +82,18 @@ let weapons=[
 {icon:'🔥',price:800,name:'Flame'},
 {icon:'🎯',price:1500,name:'Sniper'},
 {icon:'⚡',price:3000,name:'Laser'},
-{icon:'🌌',price:7000,name:'Plasma'},
-{icon:'🚀',price:15000,name:'Rocket'},
-{icon:'🧨',price:30000,name:'Bomb'}
+{icon:'🌌',price:7000,name:'Plasma'}
 ];
 
-// LOAD OLD PROGRESS
 function load(){
-let d =
-JSON.parse(localStorage.getItem('ultimate_save')) ||
-JSON.parse(localStorage.getItem('save_v4')) ||
-JSON.parse(localStorage.getItem('save_v2')) ||
-JSON.parse(localStorage.getItem('chicken_save'));
-
-if(d){
-coins=d.coins||0;
-xp=d.xp||0;
-level=d.level||1;
-gold=d.gold||0;
-inventory=d.inventory||[];
-usedPromos=d.usedPromos||[];
-stats=d.stats||stats;
-}
+let d = JSON.parse(localStorage.getItem('ultimate_save')) ||
+        JSON.parse(localStorage.getItem('save_v4')) ||
+        JSON.parse(localStorage.getItem('save_v2'));
+if(d){Object.assign(window,d);}
 }
 
 function save(){
-localStorage.setItem('ultimate_save',JSON.stringify({
-coins,xp,level,gold,inventory,usedPromos,stats
-}));
+localStorage.setItem('ultimate_save',JSON.stringify({coins,xp,level,gold,goldClick,inventory,usedPromos,nick,nickColor,stats}));
 }
 
 function updateUI(){
@@ -135,8 +101,9 @@ document.getElementById('coins').innerText=Math.floor(coins);
 document.getElementById('gold').innerText=Math.floor(gold);
 document.getElementById('xp').innerText=xp;
 document.getElementById('level').innerText=level;
-
 document.getElementById('eventGold').innerText=Math.floor(gold);
+document.getElementById('goldClick').innerText=goldClick;
+let n=document.getElementById('nick');n.innerText=nick;n.style.color=nickColor;
 
 document.getElementById('statClicks').innerText=stats.clicks;
 document.getElementById('statEarned').innerText=stats.earned;
@@ -145,164 +112,68 @@ document.getElementById('statItems').innerText=inventory.length;
 document.getElementById('statTime').innerText=stats.time;
 }
 
-// CLICK
-function clickChicken(){
-coins+=1;
-xp+=1;
-stats.clicks++;
-stats.earned+=1;
+function clickChicken(){coins++;xp++;stats.clicks++;stats.earned++;if(xp>=1000){xp=0;level++;}updateUI();save();}
 
-if(xp>=1000){xp=0;level++;}
+function upgradeGoldClick(){if(gold>=50){gold-=50;goldClick+=0.5;updateUI();save();}}
+function goldClickFunc(){gold+=goldClick;updateUI();save();}
 
-updateUI();
-save();
-}
+function buyEvent(i,p){if(gold>=p){gold-=p;inventory.push(i);updateInventory();updateUI();save();}}
 
-// SHOP
-function createShop(){
-let d=document.getElementById('weapons');
-d.innerHTML='';
-weapons.forEach(w=>{
-let b=document.createElement('button');
-b.innerHTML=`${w.icon} ${w.name}<br>💰 ${w.price}`;
-b.onclick=()=>buyWeapon(w);
-d.appendChild(b);
-});
-}
+function createShop(){let d=document.getElementById('weapons');d.innerHTML='';weapons.forEach(w=>{let b=document.createElement('button');b.innerHTML=`${w.icon}<br>${w.name}<br>${w.price}`;b.onclick=()=>buyWeapon(w);d.appendChild(b);});}
+function buyWeapon(w){if(coins>=w.price){coins-=w.price;stats.spent+=w.price;inventory.push(w.icon);updateInventory();updateUI();save();}}
 
-function buyWeapon(w){
-if(coins>=w.price){
-coins-=w.price;
-stats.spent+=w.price;
-inventory.push(w.icon);
-updateInventory();
-updateUI();
-save();
-}
-}
+function generateMarket(){let d=document.getElementById('marketItems');d.innerHTML='';for(let i=0;i<3;i++){let w=weapons[Math.floor(Math.random()*weapons.length)];let price=Math.floor(Math.random()*1000)+100;let b=document.createElement('button');b.innerHTML=`${w.icon}<br>${price}`;b.onclick=()=>{if(coins>=price){coins-=price;stats.spent+=price;inventory.push(w.icon);generateMarket();updateInventory();updateUI();save();}};d.appendChild(b);} }
 
-// MARKET
-function generateMarket(){
-let d=document.getElementById('marketItems');
-d.innerHTML='';
-for(let i=0;i<3;i++){
-let w=weapons[Math.floor(Math.random()*weapons.length)];
-let price=Math.floor(Math.random()*1000)+100;
+function openCase(t){let w=weapons[Math.floor(Math.random()*weapons.length)].icon;if(t==='pro'&&coins>=2000){coins-=2000}else if(t==='den'&&coins>=50000){coins-=50000}else if(t==='zcy'&&coins>=100000){coins-=100000}else if(t!=='free')return;inventory.push(w);document.getElementById('caseResult').innerText='Випало: '+w;updateInventory();updateUI();save();}
 
-let b=document.createElement('button');
-b.innerHTML=`${w.icon}<br>💰 ${price}`;
+function updateInventory(){let l=document.getElementById('inventoryList');l.innerHTML='';inventory.forEach((i,idx)=>{let li=document.createElement('li');li.innerHTML=i+' <button onclick="sell('+idx+')">Продати</button>';l.appendChild(li);});}
+function sell(i){coins+=50;stats.earned+=50;inventory.splice(i,1);updateInventory();updateUI();save();}
 
-b.onclick=()=>{
-if(coins>=price){
-coins-=price;
-stats.spent+=price;
-inventory.push(w.icon);
-generateMarket();
-updateInventory();
-updateUI();
-save();
-}
-};
-
-d.appendChild(b);
-}
-}
-
-// CASES
-function openCase(type){
-let loot=weapons[Math.floor(Math.random()*weapons.length)].icon;
-
-if(type==='pro' && coins>=2000){coins-=2000;}
-else if(type==='den' && coins>=50000){coins-=50000;}
-else if(type==='zcy' && coins>=100000){coins-=100000;}
-else if(type==='free'){}
-else return;
-
-inventory.push(loot);
-document.getElementById('caseResult').innerText='Випало: '+loot;
-updateInventory();
-updateUI();
-save();
-}
-
-// INVENTORY
-function updateInventory(){
-let l=document.getElementById('inventoryList');
-l.innerHTML='';
-inventory.forEach((i,idx)=>{
-let li=document.createElement('li');
-li.innerHTML=i+' <button onclick="sell('+idx+')">Продати</button>';
-l.appendChild(li);
-});
-}
-
-function sell(i){
-coins+=50;
-stats.earned+=50;
-inventory.splice(i,1);
-updateInventory();
-updateUI();
-save();
-}
-
-// PROMO
 function usePromo(){
 let code=document.getElementById('promoInput').value;
 let msg=document.getElementById('promoMsg');
 
-if(usedPromos.includes(code)){msg.innerText='Вже';return;}
+if(usedPromos.includes(code)){
+msg.innerText='Вже використано';
+return;
+}
 
+let valid=[
+'Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift',
+'YT','Case','Chicken','UPDATE','228','Error','Gold','Avatar','Morning','Night','Happy','Holiday','Winter','Pro','Hello'
+];
+
+if(code==='event'){
+gold+=100;
+msg.innerText='+100 голди';
+}
+else if(valid.includes(code)){
 coins+=2090;
-usedPromos.push(code);
 msg.innerText='+2090';
+}
+else{
+msg.innerText='❌';
+return;
+}
 
+usedPromos.push(code);
 updateUI();
 save();
 }
 
-// EVENT
-function goldClick(){
-gold+=0.5;
-updateUI();
-save();
-}
+function setNick(){nick=document.getElementById('nickInput').value||nick;updateUI();save();}
+function setColor(c){nickColor=c;updateUI();save();}
+function resetGame(){localStorage.clear();location.reload();}
 
-// MINIGAME
-function newEgg(){
-let e=document.getElementById('egg');
-e.onclick=()=>{
-coins+=50;
-newEgg();
-updateUI();
-save();
-};
-}
+function newEgg(){let e=document.getElementById('egg');e.onclick=()=>{coins+=50;updateUI();save();};}
 
-// NAV
-function openTab(t){
-document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
-document.getElementById(t).classList.add('active');
-}
+function openTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById(t).classList.add('active');}
 
-// TIME
-setInterval(()=>{
-stats.time++;
-updateUI();
-save();
-},1000);
+setInterval(()=>{stats.time++;updateUI();save();},1000);
 
-// EVENTS
 document.getElementById('clickBtn').addEventListener('click',clickChicken);
-document.getElementById('goldClickBtn').addEventListener('click',goldClick);
+document.getElementById('goldClickBtn').addEventListener('click',goldClickFunc);
 
-// START
-load();
-createShop();
-generateMarket();
-updateInventory();
-updateUI();
-newEgg();
-</script>
-
-</body>
+load();createShop();generateMarket();updateInventory();updateUI();newEgg();
+</script></body>
   </html>
