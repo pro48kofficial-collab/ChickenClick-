@@ -406,4 +406,365 @@
             { id: 36, name: "Рельсотрон (Railgun)", type: "weapon", rarity: "mythic", price: 10000000, power: 25000, isAuto: false, img: "🔮" },
 
             // Секретні / Містичні Легенди (Secret)
-            { id: 37, name: "Посох Творця Чикена"
+            { id: 37, name: "Посох Творця Чикена", type: "weapon", rarity: "secret", price: 15000000, power: 60000, isAuto: false, img: "🪄" },
+            { id: 38, name: "Аура Секретного Чітера", type: "cloth", rarity: "secret", price: 22000000, power: 45000, isAuto: true, img: "✨" },
+            { id: 39, name: "Зменшувач Матерії", type: "weapon", rarity: "secret", price: 35000000, power: 130000, isAuto: false, img: "🧬" },
+            { id: 40, name: "Шолом Адміна", type: "cloth", rarity: "secret", price: 50000000, power: 99000, isAuto: true, img: "🽲" },
+            { id: 41, name: "Гравітаційна Сингулярність", type: "weapon", rarity: "secret", price: 80000000, power: 300000, isAuto: false, img: "🕳️" },
+            { id: 42, name: "Костюм Бога Курчат", type: "cloth", rarity: "secret", price: 120000000, power: 250000, isAuto: true, img: "🦅" },
+            { id: 43, name: "Гіперпросторова Снайперка", type: "weapon", rarity: "secret", price: 200000000, power: 800000, isAuto: false, img: "🌌" },
+            { id: 44, name: "Кришталеве Яйце Долі", type: "cloth", rarity: "secret", price: 350000000, power: 650000, isAuto: true, img: "🔮" },
+            { id: 45, name: "B.F.G. 9000 Chicken Edition", type: "weapon", rarity: "secret", price: 500000000, power: 2000000, isAuto: false, img: "🟢" }
+        ];
+
+        // --- ДАНІ ГРАВЦЯ (СТАН) ---
+        let playerState = {
+            coins: 0,
+            clickPower: 1,
+            autoIncome: 0,
+            username: "Гравець",
+            nameColor: "#f5f6fa",
+            avatarData: "", // Base64 або Емодзі
+            chickenImgData: "", // Своє фото курки
+            ownedItems: [], // ID куплених предметів
+            activatedCodes: [],
+            hasAuthorBonus: false
+        };
+
+        // --- АЛГОРИТМ 340 ПРОМОКОДІВ ---
+        // Щоб не забивати код, коди генеруються за формулою: CHICKEN-CHIEF-1 до CHICKEN-CHIEF-340
+        function isValidPromo(code) {
+            const cleanCode = code.trim().toUpperCase();
+            
+            // Перевірка на коди автора
+            if (cleanCode === "PRO48K" || cleanCode === "ZCY11K") {
+                return { valid: true, type: "author", prize: 5000 };
+            }
+
+            // Перевірка 340 системних кодів
+            const match = cleanCode.match(/^CHICKEN-CHIEF-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1]);
+                if (num >= 1 && num <= 340) {
+                    // Кожен код дає випадкову кількість коінів від 500 до 1500
+                    let prizeAmount = 500 + (num * 3) % 1001; 
+                    return { valid: true, type: "promo", prize: prizeAmount, codeStr: cleanCode };
+                }
+            }
+            return { valid: false };
+        }
+
+        // --- СИСТЕМА ЗБЕРЕЖЕННЯ PROGRESS (LOCAL STORAGE) ---
+        function saveGame() {
+            localStorage.setItem('chicken_click_pro_save', JSON.stringify(playerState));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('chicken_click_pro_save');
+            if (saved) {
+                try {
+                    playerState = JSON.parse(saved);
+                    // Перерахунок сили кліку та авто-доходу на основі куплених предметів
+                    recalculateStats();
+                } catch(e) {
+                    console.error("Помилка завантаження збереження", e);
+                }
+            }
+            applyLoadedState();
+        }
+
+        function recalculateStats() {
+            let cp = 1;
+            let ai = 0;
+            playerState.ownedItems.forEach(id => {
+                const item = gameItems.find(i => i.id === id);
+                if (item) {
+                    if (item.isAuto) ai += item.power;
+                    else cp += item.power;
+                }
+            });
+            if (playerState.hasAuthorBonus) {
+                cp = Math.round(cp * 1.1); // +10% бонусу від автора
+            }
+            playerState.clickPower = cp;
+            playerState.autoIncome = ai;
+        }
+
+        function applyLoadedState() {
+            document.getElementById('balance-coins').textContent = Math.floor(playerState.coins);
+            document.getElementById('fps-counter').textContent = playerState.autoIncome;
+            
+            const nameSpan = document.getElementById('player-name');
+            nameSpan.textContent = playerState.username;
+            nameSpan.style.color = playerState.nameColor;
+            document.getElementById('username-input').value = playerState.username;
+
+            if (playerState.hasAuthorBonus) {
+                document.getElementById('author-badge').style.display = "inline";
+            }
+
+            // Завантаження аватара
+            if (playerState.avatarData) {
+                if(playerState.avatarData.length > 4) {
+                    document.getElementById('player-avatar').src = playerState.avatarData;
+                } else {
+                    // Якщо емодзі
+                    setAvatarSvgFromEmoji(playerState.avatarData);
+                }
+            }
+            
+            // Завантаження фото курки
+            if (playerState.chickenImgData) {
+                document.getElementById('chicken-image-display').src = playerState.chickenImgData;
+            }
+
+            renderShop();
+            renderInventory();
+            renderMarket();
+        }
+
+        // --- ІНТЕРФЕЙС ТА НАВІГАЦІЯ ---
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`screen-${tabId}`).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // Створення SVG-заглушки для емодзі аватарок
+        function setAvatarSvgFromEmoji(emoji) {
+            document.getElementById('player-avatar').src = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${emoji}</text></svg>`;
+        }
+
+        // Зміна кольору нікнейму
+        function changeNameColor(color) {
+            playerState.nameColor = color;
+            const nameSpan = document.getElementById('player-name');
+            nameSpan.style.color = color;
+            saveGame();
+        }
+
+        // Вибір пресету аватарки
+        function selectPresetAvatar(emoji) {
+            playerState.avatarData = emoji;
+            setAvatarSvgFromEmoji(emoji);
+            saveGame();
+        }
+
+        // Кастомний нікнейм
+        document.getElementById('username-input').addEventListener('input', (e) => {
+            playerState.username = e.target.value || "Гравець";
+            document.getElementById('player-name').textContent = playerState.username;
+            saveGame();
+        });
+
+        // --- ЗАВАНТАЖЕННЯ ФОТОГРАФІЙ ---
+        // Фото Аватара
+        document.getElementById('upload-avatar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    playerState.avatarData = event.target.result;
+                    document.getElementById('player-avatar').src = event.target.result;
+                    saveGame();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Фото Курки
+        document.getElementById('upload-chicken-spec').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    playerState.chickenImgData = event.target.result;
+                    document.getElementById('chicken-image-display').src = event.target.result;
+                    saveGame();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- ЛОГІКА КЛІКЕРУ ---
+        document.getElementById('main-chicken-trigger').addEventListener('click', () => {
+            playerState.coins += playerState.clickPower;
+            document.getElementById('balance-coins').textContent = Math.floor(playerState.coins);
+            saveGame();
+        });
+
+        // Пасивний дохід
+        setInterval(() => {
+            if (playerState.autoIncome > 0) {
+                playerState.coins += playerState.autoIncome / 10;
+                document.getElementById('balance-coins').textContent = Math.floor(playerState.coins);
+                // Оновлюємо доступність кнопок у магазині в реальному часі
+                document.querySelectorAll('.btn-buy-item').forEach(btn => {
+                    const price = parseInt(btn.getAttribute('data-price'));
+                    btn.disabled = playerState.coins < price;
+                });
+            }
+        }, 100);
+
+        // --- ГЕНЕРАЦІЯ СПИСКІВ (МАГАЗИН, ІНВЕНТАР, РИНОК) ---
+        function renderShop() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = "";
+
+            gameItems.forEach(item => {
+                const isOwned = playerState.ownedItems.includes(item.id);
+                const card = document.createElement('div');
+                card.className = `game-card ${item.rarity}`;
+                
+                card.innerHTML = `
+                    <span class="rarity-tag ${item.rarity}-text">${item.rarity}</span>
+                    <div style="font-size: 2.2rem; margin: 5px;">${item.img}</div>
+                    <div style="font-weight:bold; font-size:0.9rem; line-height:1.2;">${item.name}</div>
+                    <div style="font-size:0.8rem; color:#bdc3c7; margin:4px 0;">
+                        ${item.isAuto ? `⏳ Пасив: +${item.power}/с` : `💥 Клік: +${item.power}`}
+                    </div>
+                    <button class="btn-action btn-buy-item" data-price="${item.price}" onclick="buyItem(${item.id})" ${isOwned ? 'disabled style="background:#57606f;"' : ''}>
+                        ${isOwned ? '🛒 Куплено' : `🪙 ${item.price}`}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('inventory-items-container');
+            container.innerHTML = "";
+
+            if (playerState.ownedItems.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; text-align:center; color:#aaa; margin-top:20px;">🎒 Інвентар порожній. Купи щось у магазині!</p>`;
+                return;
+            }
+
+            playerState.ownedItems.forEach(id => {
+                const item = gameItems.find(i => i.id === id);
+                if (item) {
+                    const card = document.createElement('div');
+                    card.className = `game-card ${item.rarity}`;
+                    card.innerHTML = `
+                        <span class="rarity-tag ${item.rarity}-text">${item.rarity}</span>
+                        <div style="font-size: 2.2rem; margin: 5px;">${item.img}</div>
+                        <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                        <div style="font-size:0.8rem; color:#2ecc71; margin-top:5px;">⚡ Ефект Активовано</div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+        }
+
+        function renderMarket() {
+            const container = document.getElementById('market-items-container');
+            container.innerHTML = "";
+
+            if (playerState.ownedItems.length === 0) {
+                container.innerHTML = `<p style="grid-column: span 2; text-align:center; color:#aaa; margin-top:20px;">⚖️ У вас немає речей для продажу на ринку.</p>`;
+                return;
+            }
+
+            playerState.ownedItems.forEach(id => {
+                const item = gameItems.find(i => i.id === id);
+                if (item) {
+                    const refundPrice = Math.floor(item.price * 0.65);
+                    const card = document.createElement('div');
+                    card.className = `game-card ${item.rarity}`;
+                    card.innerHTML = `
+                        <span class="rarity-tag ${item.rarity}-text">${item.rarity}</span>
+                        <div style="font-size: 2.2rem; margin: 5px;">${item.img}</div>
+                        <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                        <button class="btn-action" style="background:#e74c3c;" onclick="sellItem(${item.id}, ${refundPrice})">
+                            💰 Продати за 🪙${refundPrice}
+                        </button>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+        }
+
+        // Взаємодія з предметами
+        function buyItem(id) {
+            const item = gameItems.find(i => i.id === id);
+            if (item && playerState.coins >= item.price && !playerState.ownedItems.includes(id)) {
+                playerState.coins -= item.price;
+                playerState.ownedItems.push(id);
+                recalculateStats();
+                applyLoadedState();
+                saveGame();
+            }
+        }
+
+        function sellItem(id, price) {
+            const index = playerState.ownedItems.indexOf(id);
+            if (index > -1) {
+                playerState.ownedItems.splice(index, 1);
+                playerState.coins += price;
+                recalculateStats();
+                applyLoadedState();
+                saveGame();
+            }
+        }
+
+        // --- АКТИВАЦІЯ КОДІВ ---
+        function claimCode() {
+            const input = document.getElementById('promo-input');
+            const code = input.value.trim();
+            if(!code) return;
+
+            const check = isValidPromo(code);
+
+            if (check.valid) {
+                if (check.type === "author") {
+                    if (playerState.hasAuthorBonus) {
+                        alert("❌ Ви вже активували код автора!");
+                    } else {
+                        playerState.hasAuthorBonus = true;
+                        playerState.coins += check.prize;
+                        alert(`🔥 Код автора успішно активовано! Отримано: +${check.prize} коінів та +10% до сили кліку назавжди!`);
+                        recalculateStats();
+                        applyLoadedState();
+                        saveGame();
+                    }
+                } else if (check.type === "promo") {
+                    if (playerState.activatedCodes.includes(check.codeStr)) {
+                        alert("❌ Цей промокод вже використано!");
+                    } else {
+                        playerState.activatedCodes.push(check.codeStr);
+                        playerState.coins += check.prize;
+                        alert(`🎁 Промокод активовано! Нараховано бонус: +${check.prize} коінів!`);
+                        applyLoadedState();
+                        saveGame();
+                    }
+                }
+            } else {
+                alert("❌ Код недійсний або спробуйте інший формат (напр. CHICKEN-CHIEF-15)");
+            }
+            input.value = "";
+        }
+
+        // Повне скидання гри
+        function resetAllProgress() {
+            if (confirm("🚨 Ти впевнений, що хочеш повністю видалити весь свій прогрес в грі? Цю дію неможливо скасувати!")) {
+                localStorage.removeItem('chicken_click_pro_save');
+                location.reload();
+            }
+        }
+
+        // ІНІЦІАЛІЗАЦІЯ ПРИ ЗАПУСКУ ГРИ
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGame();
+            
+            // Анімація сплеш-скріну (тримається 1.8 секунди)
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = 0;
+                setTimeout(() => splash.style.display = 'none', 500);
+            }, 1800);
+        });
+    </script>
+</body>
+</html>
