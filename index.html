@@ -156,6 +156,22 @@
             object-fit: cover;
         }
 
+        /* ЕФЕКТ ПОЛЕТУ ЦИФР (+КЛІК) */
+        .floating-text {
+            position: absolute;
+            color: #f1c40f;
+            font-weight: bold;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 0.6s ease-out forwards;
+            text-shadow: 2px 2px 0px #000;
+            z-index: 1000;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+        }
+
         /* НИЖНЄ МЕНЮ (МОБІЛЬНЕ) */
         .bottom-nav {
             position: fixed;
@@ -200,6 +216,19 @@
             flex-direction: column;
             justify-content: space-between;
         }
+        .card-icon {
+            font-size: 2.5rem;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+        }
+        .card-icon img {
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
+        }
         .btn-action {
             background: #2ecc71;
             color: white; border: none; padding: 8px;
@@ -208,12 +237,12 @@
         .btn-action:disabled { background: #7f8c8d; cursor: not-allowed; }
 
         /* РІДКОСТІ */
-        .rarity-tag { font-size: 0.75rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
-        .common { border-color: var(--rarity-common); } .common-text { color: var(--rarity-common); }
-        .rare { border-color: var(--rarity-rare); } .rare-text { color: var(--rarity-rare); }
-        .epic { border-color: var(--rarity-epic); } .epic-text { color: var(--rarity-epic); }
-        .mythic { border-color: var(--rarity-mythic); } .mythic-text { color: var(--rarity-mythic); }
-        .secret { border-color: var(--rarity-secret); animation: pulse 1.5s infinite; } .secret-text { color: var(--rarity-secret); }
+        .rarity-tag { font-size: 0.75rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; display: inline-block; margin-bottom: 5px;}
+        .common { border-color: var(--rarity-common); } .common-bg { background: var(--rarity-common); color: #fff; } .common-text { color: var(--rarity-common); }
+        .rare { border-color: var(--rarity-rare); } .rare-bg { background: var(--rarity-rare); color: #fff; } .rare-text { color: var(--rarity-rare); }
+        .epic { border-color: var(--rarity-epic); } .epic-bg { background: var(--rarity-epic); color: #fff; } .epic-text { color: var(--rarity-epic); }
+        .mythic { border-color: var(--rarity-mythic); } .mythic-bg { background: var(--rarity-mythic); color: #fff; } .mythic-text { color: var(--rarity-mythic); }
+        .secret { border-color: var(--rarity-secret); animation: pulse 1.5s infinite; } .secret-bg { background: var(--rarity-secret); color: #fff; } .secret-text { color: var(--rarity-secret); }
 
         @keyframes pulse {
             0% { box-shadow: 0 0 5px var(--rarity-secret); }
@@ -240,7 +269,7 @@
 
     <div class="header-panel">
         <div class="profile-area">
-            <label for="upload-avatar" class="avatar-container" id="avatar-box">👤</label>
+            <label for="upload-avatar" class="avatar-container" id="avatar-box">🐔</label>
             <input type="file" id="upload-avatar" class="hidden-file" accept="image/*">
             <div>
                 <span id="player-name" style="font-weight: bold; font-size: 1.1rem;">Гравець</span><br>
@@ -257,7 +286,7 @@
         
         <div id="screen-clicker" class="screen active">
             <h2>Натискай на Курча! 🐣</h2>
-            <div class="chicken-container">
+            <div class="chicken-container" id="chicken-click-zone">
                 <div class="chicken-btn" id="main-chicken-trigger">
                     <div id="chicken-inner" class="inner-display">🐔</div>
                 </div>
@@ -393,21 +422,4 @@
             { id: 36, name: "Рельсотрон", type: "weapon", rarity: "mythic", price: 10000000, power: 25000, isAuto: false, img: "🔮" },
 
             { id: 37, name: "Посох Творця Чикена", type: "weapon", rarity: "secret", price: 15000000, power: 60000, isAuto: false, img: "🪄" },
-            { id: 38, name: "Аура Секретного Чітера", type: "cloth", rarity: "secret", price: 22000000, power: 45000, isAuto: true, img: "✨" },
-            { id: 39, name: "Зменшувач Матерії", type: "weapon", rarity: "secret", price: 35000000, power: 130000, isAuto: false, img: "🧬" },
-            { id: 40, name: "Шолом Адміна", type: "cloth", rarity: "secret", price: 50000000, power: 99000, isAuto: true, img: "💻" },
-            { id: 41, name: "Гравітаційна Діра", type: "weapon", rarity: "secret", price: 80000000, power: 300000, isAuto: false, img: "🕳️" },
-            { id: 42, name: "Костюм Бога Курчат", type: "cloth", rarity: "secret", price: 120000000, power: 250000, isAuto: true, img: "🦅" },
-            { id: 43, name: "Гіперпросторова Снайперка", type: "weapon", rarity: "secret", price: 200000000, power: 800000, isAuto: false, img: "🌌" },
-            { id: 44, name: "Яйце Долі", type: "cloth", rarity: "secret", price: 350000000, power: 650000, isAuto: true, img: "🔮" },
-            { id: 45, name: "B.F.G. 9000 Chicken Ed.", type: "weapon", rarity: "secret", price: 500000000, power: 2000000, isAuto: false, img: "🟢" }
-        ];
-
-        // СТАН ГРАВЦЯ
-        let playerState = {
-            coins: 0,
-            clickPower: 1,
-            autoIncome: 0,
-            username: "Гравець",
-            nameColor: "#f5f6fa",
-    
+            { id: 38, name: "Аура Секретного Чітера", type: "cloth", rarity: "secret", price: 22000000, power:
