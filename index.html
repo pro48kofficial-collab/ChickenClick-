@@ -1,245 +1,409 @@
-<!DOCTYPE html><html lang="uk">
+<!DOCTYPE html>
+<html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Clicker v4.5</title>
-<style>
-:root{--bg:#020617;--text:#0ff;--card:#000}
-body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
-.container{display:flex;flex-direction:column;height:100vh}
-.content{flex:1;text-align:center;padding-bottom:90px}
-.nav{display:flex;gap:10px;overflow-x:auto;white-space:nowrap;background:#000;border-top:2px solid #0ff;padding:5px;position:fixed;bottom:0;width:100%}
-.nav button{flex:0 0 auto}
-button{margin:5px;padding:10px;border-radius:10px;border:1px solid #0ff;background:var(--card);color:var(--text)}
-.tab{display:none}
-.active{display:block}
-.egg{font-size:60px;cursor:pointer}
-.avatar{font-size:30px;cursor:pointer;margin:5px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChickenClick Pro</title>
+    <style>
+        :root {
+            --bg-color: #1e272e;
+            --panel-color: #2f3640;
+            --accent-color: #f1c40f;
+            --text-color: #f5f6fa;
+            
+            /* Рідкість предметів */
+            --rarity-common: #95a5a6;
+            --rarity-rare: #2980b9;
+            --rarity-epic: #8e44ad;
+            --rarity-mythic: #e74c3c;
+            --rarity-secret: #1abc9c;
+        }
+
+        * {
+            box-shadow: border-box;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* АНІМАЦІЯ ЗАПУСКУ */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #2c3e50;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--accent-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ВЕРХНЯ ПАНЕЛЬ СТАТУСУ */
+        .header-panel {
+            background: var(--panel-color);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent-color);
+        }
+        .profile-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid white;
+            object-fit: cover;
+            background: #aaa;
+        }
+        .stats-area {
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .coin-anim {
+            color: #f1c40f;
+            display: inline-block;
+        }
+
+        /* ОСНОВНИЙ КОНТЕНТ (ВКЛАДКИ) */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            padding-bottom: 80px; /* щоб нижнє меню не перекривало */
+        }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* СКРІН 1: ГОЛОВНИЙ КЛІКЕР */
+        #screen-clicker {
+            text-align: center;
+            padding-top: 20px;
+        }
+        .chicken-container {
+            position: relative;
+            display: inline-block;
+            margin: 40px auto;
+        }
+        .chicken-btn {
+            width: 180px;
+            height: 180px;
+            background: #f39c12;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px #d35400, 0 15px 20px rgba(0,0,0,0.5);
+            transition: transform 0.05s, box-shadow 0.05s;
+        }
+        .chicken-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 2px #d35400, 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .chicken-btn img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        /* НИЖНЄ МЕНЮ (МОБІЛЬНЕ) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            height: 65px;
+            background: var(--panel-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 2px solid #3d4451;
+            z-index: 900;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #a4b0be;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            flex: 1;
+            padding: 5px 0;
+        }
+        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 2px; }
+        .nav-btn.active { color: var(--accent-color); font-weight: bold; }
+
+        /* ЕЛЕМЕНТИ СПИСКІВ / МАГАЗИНУ / РИНКУ */
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .game-card {
+            background: #3c4451;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .game-card img {
+            width: 60px; height: 60px; margin: 5px auto; object-fit: contain; block-size: auto;
+        }
+        .btn-action {
+            background: #2ecc71;
+            color: white; border: none; padding: 6px;
+            border-radius: 5px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px;
+        }
+        .btn-action:disabled { background: #7f8c8d; }
+
+        /* РІДКОСТІ ТЕКСТ / СТИЛІ */
+        .rarity-tag { font-size: 0.75rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
+        .common { border-color: var(--rarity-common); } .common-text { color: var(--rarity-common); }
+        .rare { border-color: var(--rarity-rare); } .rare-text { color: var(--rarity-rare); }
+        .epic { border-color: var(--rarity-epic); } .epic-text { color: var(--rarity-epic); }
+        .mythic { border-color: var(--rarity-mythic); } .mythic-text { color: var(--rarity-mythic); }
+        .secret { border-color: var(--rarity-secret); animation: pulse 1.5s infinite; } .secret-text { color: var(--rarity-secret); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px var(--rarity-secret); }
+            50% { box-shadow: 0 0 15px var(--rarity-secret); }
+            100% { box-shadow: 0 0 5px var(--rarity-secret); }
+        }
+
+        /* НАЛАШТУВАННЯ ТА ПРОФІЛЬ */
+        .input-box {
+            width: 100%; padding: 10px; background: #3d4451; border: 1px solid #57606f;
+            color: white; border-radius: 5px; margin-bottom: 10px; font-size: 1rem;
+        }
+        .color-picker-grid { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .color-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+
+        /* Схований інпут для файлів */
+        .hidden-file { display: none; }
+    </style>
 </head>
 <body>
-<div class="container">
-<div class="content"><div id="main" class="tab active">
-<h2>💰 <span id="coins">0</span> | 🪙 <span id="gold">0</span></h2>
-<h3><span id="avatar">🐔</span> <span id="nick">Гравець</span> | LVL <span id="level">1</span> | XP <span id="xp">0</span>/1000</h3>
-<button id="clickBtn">🐔 Клік</button>
-<p>Версія: 4.5</p>
-</div><div id="shop" class="tab"><h2>🛒 Магазин</h2><div id="weapons"></div></div>
-<div id="market" class="tab"><h2>💱 Ринок</h2><div id="marketItems"></div></div><div id="cases" class="tab">
-<h2>🎁 Кейси</h2>
-<button onclick="openCase('pro')">PRO48K</button>
-<button onclick="openCase('den')">Den</button>
-<button onclick="openCase('free')">Free</button>
-<button onclick="openCase('zcy')">ZCY11K</button>
-<p id="caseResult"></p>
-</div><div id="minigame" class="tab">
-<h2>🥚 Міні-гра</h2>
-<div id="egg" class="egg">🥚</div>
-</div><div id="event" class="tab">
-<h2>⚡ Івент</h2>
-<p>Голда: <span id="eventGold">0</span></p>
-<p>Клік: <span id="goldClick">0.5</span></p>
-<button id="goldClickBtn">⚡ Клік</button>
-<button onclick="upgradeGoldClick()">Апгрейд (50)</button>
-<h3>Ексклюзив</h3>
-<button onclick="buyEvent('👑',200)">👑 200</button>
-<button onclick="buyEvent('🔥',300)">🔥 300</button>
-<button onclick="buyEvent('🌌',500)">🌌 500</button>
-</div><div id="promo" class="tab">
-<h2>🎟️ Промокоди</h2>
-<input id="promoInput"><button onclick="usePromo()">OK</button>
-<p id="promoMsg"></p>
-</div><div id="inventory" class="tab"><h2>🎒 Інвентар</h2><ul id="inventoryList"></ul></div><div id="profile" class="tab">
-<h2>👤 Профіль</h2>
-<input id="nickInput" placeholder="Новий нік">
-<button onclick="setNick()">Змінити</button>
-<br><br>
-<input type="color" onchange="setColor(this.value)">
-<button onclick="resetGame()">Скинути прогрес</button>
-<button onclick="toggleTheme()">Змінити тему</button><h3>Аватарки</h3>
-<div id="avatars"></div><h3>Статистика</h3>
-<p>Кліки: <span id="statClicks">0</span></p>
-<p>Зароблено: <span id="statEarned">0</span></p>
-<p>Витрачено: <span id="statSpent">0</span></p>
-<p>Скіни: <span id="statItems">0</span></p>
-<p>Час: <span id="statTime">0</span></p>
-</div></div><div class="nav">
-<button onclick="openTab('main')">🐔</button>
-<button onclick="openTab('shop')">🛒</button>
-<button onclick="openTab('market')">💱</button>
-<button onclick="openTab('cases')">🎁</button>
-<button onclick="openTab('minigame')">🥚</button>
-<button onclick="openTab('event')">⚡</button>
-<button onclick="openTab('promo')">🎟️</button>
-<button onclick="openTab('inventory')">🎒</button>
-<button onclick="openTab('profile')">👤</button>
-</div>
-</div><script>
-let coins=0,xp=0,level=1,gold=0,goldClick=0.5;
-let inventory=[],usedPromos=[];
-let nick='Гравець',nickColor='#0ff',avatar='🐔';
-let stats={clicks:0,earned:0,spent:0,time:0};
 
-let avatarList=['🍰','💀','🥳','⛄','🤖','⚡','🌪️','🐔'];
+    <!-- ЕКРАН ЗАПУСКУ -->
+    <div id="splash-screen">
+        <h1 style="font-size: 2.5rem; color: #f1c40f; margin: 0; text-shadow: 3px 3px #d35400;">CHICKENCLICK PRO</h1>
+        <p style="color: #bdc3c7;">Завантаження всесвіту Chicken Gun...</p>
+        <div class="loader"></div>
+    </div>
 
-let weapons=[
-{icon:'🔫',price:100,name:'Pistol'},
-{icon:'💥',price:300,name:'Shotgun'},
-{icon:'🔥',price:800,name:'Flame'},
-{icon:'🎯',price:1500,name:'Sniper'},
-{icon:'⚡',price:3000,name:'Laser'},
-{icon:'🌌',price:7000,name:'Plasma'}
-];
+    <!-- ВЕРХНЯ СТАТУС ПАНЕЛЬ -->
+    <div class="header-panel">
+        <div class="profile-area">
+            <label for="upload-avatar">
+                <img id="player-avatar" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/></svg>" alt="Avatar">
+            </label>
+            <input type="file" id="upload-avatar" class="hidden-file" accept="image/*">
+            <div>
+                <span id="player-name" style="font-weight: bold; font-size: 1.1rem;">Гравець</span><br>
+                <span id="author-badge" style="font-size:0.75rem; color:#2ecc71; display:none;">🔥 Авторський код активовано</span>
+            </div>
+        </div>
+        <div class="stats-area">
+            <span class="coin-anim">🪙</span> <span id="balance-coins">0</span><br>
+            <span style="font-size:0.8rem; color:#aaa;">+<span id="fps-counter">0</span>/сек</span>
+        </div>
+    </div>
 
-// LOAD OLD + NEW PROGRESS
-function load(){
-let d = JSON.parse(localStorage.getItem('ultimate_save')) ||
-        JSON.parse(localStorage.getItem('save_v4')) ||
-        JSON.parse(localStorage.getItem('save_v2')) ||
-        JSON.parse(localStorage.getItem('chicken_save'));
-if(d){
-coins=d.coins||0;
-xp=d.xp||0;
-level=d.level||1;
-gold=d.gold||0;
-goldClick=d.goldClick||0.5;
-inventory=d.inventory||[];
-usedPromos=d.usedPromos||[];
-nick=d.nick||nick;
-nickColor=d.nickColor||nickColor;
-avatar=d.avatar||avatar;
-stats=d.stats||stats;
-}
-}
+    <!-- ГОЛОВНИЙ КОНТЕНТ -->
+    <div class="main-content">
+        
+        <!-- ВКЛАДКА 1: КЛІКЕР -->
+        <div id="screen-clicker" class="screen active">
+            <h2>Натискай на Курча! 🐣</h2>
+            <div class="chicken-container">
+                <div class="chicken-btn" id="main-chicken-trigger">
+                    <!-- Можна завантажити кастомну картинку курки -->
+                    <img id="chicken-image-display" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'><path d='M12 2c-1.1 0-2 .9-2 2v1.1C7.4 5.6 5.3 7.8 5.1 10.5c-.1.8.4 1.5 1.2 1.5h11.4c.8 0 1.3-.7 1.2-1.5C18.7 7.8 16.6 5.6 14 5.1V4c0-1.1-.9-2-2-2zm0 18c-3.9 0-7-3.1-7-7 0-.6.4-1 1-1h12c.6 0 1 .4 1 1 0 3.9-3.1 7-7 7z'/></svg>" alt="🐔">
+                </div>
+            </div>
+            <p style="color: #aaa;">Зміна вигляду курки доступна через завантаження фото в налаштуваннях!</p>
+            <div style="margin-top: 10px;">
+                <label for="upload-chicken-spec" class="btn-action" style="padding: 10px; display:inline-block; width:auto; background:#34495e;">🖼️ Завантажити своє фото курки</label>
+                <input type="file" id="upload-chicken-spec" class="hidden-file" accept="image/*">
+            </div>
+        </div>
 
-function save(){
-localStorage.setItem('ultimate_save',JSON.stringify({coins,xp,level,gold,goldClick,inventory,usedPromos,nick,nickColor,avatar,stats}));
-}
+        <!-- ВКЛАДКА 2: МАГАЗИН (ЗБРОЯ ТА ОДЯГ) -->
+        <div id="screen-shop" class="screen">
+            <h2>🛒 Магазин Апгрейдів</h2>
+            <div class="item-grid" id="shop-items-container">
+                <!-- Генерується динамічно з JS -->
+            </div>
+        </div>
 
-function updateUI(){
-document.getElementById('coins').innerText=Math.floor(coins);
-document.getElementById('gold').innerText=Math.floor(gold);
-document.getElementById('xp').innerText=xp;
-document.getElementById('level').innerText=level;
-document.getElementById('eventGold').innerText=Math.floor(gold);
-document.getElementById('goldClick').innerText=goldClick;
+        <!-- ВКЛАДКА 3: ІНВЕНТАР -->
+        <div id="screen-inventory" class="screen">
+            <h2>🎒 Твій Інвентар</h2>
+            <div class="item-grid" id="inventory-items-container">
+                <!-- Генерується динамічно -->
+            </div>
+        </div>
 
-let n=document.getElementById('nick');
-n.innerText=nick;
-n.style.color=nickColor;
+        <!-- ВКЛАДКА 4: РИНОК -->
+        <div id="screen-market" class="screen">
+            <h2>⚖️ Чорний Ринок Скинів</h2>
+            <p style="font-size:0.9rem; color:#bdc3c7;">Тут ти можеш продати куплени або знайдені речі за 65% від вартості коінів.</p>
+            <div class="item-grid" id="market-items-container">
+                <!-- Елементи для продажу -->
+            </div>
+        </div>
 
-document.getElementById('avatar').innerText=avatar;
+        <!-- ВКЛАДКА 5: ТЕХНІЧНА / ПРОМОКОДИ -->
+        <div id="screen-settings" class="screen">
+            <h2>⚙️ Профіль та Коди</h2>
+            
+            <div style="background:var(--panel-color); padding:15px; border-radius:10px; margin-bottom:15px;">
+                <h3>🎨 Кастомізація Профілю</h3>
+                <label>Твій Нікнейм:</label>
+                <input type="text" id="username-input" class="input-box" value="Гравець">
+                
+                <label>Колір Нікнейму:</label>
+                <div class="color-picker-grid">
+                    <div class="color-dot" style="background:#f5f6fa" onclick="changeNameColor('#f5f6fa')"></div>
+                    <div class="color-dot" style="background:#e74c3c" onclick="changeNameColor('#e74c3c')"></div>
+                    <div class="color-dot" style="background:#3498db" onclick="changeNameColor('#3498db')"></div>
+                    <div class="color-dot" style="background:#2ecc71" onclick="changeNameColor('#2ecc71')"></div>
+                    <div class="color-dot" style="background:#f1c40f" onclick="changeNameColor('#f1c40f')"></div>
+                    <div class="color-dot" style="background:#9b59b6" onclick="changeNameColor('#9b59b6')"></div>
+                </div>
 
-// FIXED stats binding
-document.getElementById('statClicks').innerText=stats.clicks;
-document.getElementById('statEarned').innerText=stats.earned;
-document.getElementById('statSpent').innerText=stats.spent;
-document.getElementById('statItems').innerText=inventory.length;
-document.getElementById('statTime').innerText=stats.time;
-}
+                <label>Аватарки за замовчуванням:</label>
+                <div class="color-picker-grid" style="margin-top:5px;">
+                    <span style="font-size:2rem; cursor:pointer;" onclick="selectPresetAvatar('🐔')">🐔</span>
+                    <span style="font-size:2rem; cursor:pointer;" onclick="selectPresetAvatar('🐱')">🐱</span>
+                    <span style="font-size:2rem; cursor:pointer;" onclick="selectPresetAvatar('🐸')">🐸</span>
+                    <span style="font-size:2rem; cursor:pointer;" onclick="selectPresetAvatar('🥷')">🥷</span>
+                    <span style="font-size:2rem; cursor:pointer;" onclick="selectPresetAvatar('🤖')">🤖</span>
+                </div>
+            </div>
 
-function createAvatars(){
-let d=document.getElementById('avatars');
-d.innerHTML='';
-avatarList.forEach(a=>{
-let b=document.createElement('span');
-b.className='avatar';
-b.innerText=a;
-b.onclick=()=>{avatar=a;updateUI();save();};
-d.appendChild(b);
-});
-}
+            <div style="background:var(--panel-color); padding:15px; border-radius:10px; margin-bottom:15px;">
+                <h3>🎟️ Система Бонусів</h3>
+                <input type="text" id="promo-input" class="input-box" placeholder="Введіть промокод або код автора">
+                <button class="btn-action" style="background:#e67e22;" onclick="claimCode()">💎 Активувати код</button>
+            </div>
 
-function clickChicken(){
-coins++;xp++;stats.clicks++;stats.earned++;
-if(xp>=1000){xp=0;level++;}
-updateUI();save();
-}
+            <div style="background:var(--panel-color); padding:15px; border-radius:10px; border:1px solid #c0392b;">
+                <h3 style="color:#e74c3c;">⚠️ Небезпечна зона</h3>
+                <button class="btn-action" style="background:#c0392b;" onclick="resetAllProgress()">🔄 Повне скидання прогресу</button>
+            </div>
+        </div>
 
-function upgradeGoldClick(){if(gold>=50){gold-=50;goldClick+=0.5;updateUI();save();}}
-function goldClickFunc(){gold+=goldClick;updateUI();save();}
-function buyEvent(i,p){if(gold>=p){gold-=p;inventory.push(i);updateInventory();updateUI();save();}}
+    </div>
 
-function createShop(){
-let d=document.getElementById('weapons');d.innerHTML='';
-weapons.forEach(w=>{
-let b=document.createElement('button');
-b.innerHTML=`${w.icon}<br>${w.name}<br>${w.price}`;
-b.onclick=()=>buyWeapon(w);
-d.appendChild(b);
-});}
+    <!-- НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('clicker', this)">
+            <span class="icon">🎮</span>
+            <span>Клікер</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('shop', this)">
+            <span class="icon">🛒</span>
+            <span>Магазин</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('inventory', this)">
+            <span class="icon">🎒</span>
+            <span>Інвентар</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('market', this)">
+            <span class="icon">⚖️</span>
+            <span>Ринок</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('settings', this)">
+            <span class="icon">⚙️</span>
+            <span>Коди</span>
+        </button>
+    </div>
 
-function buyWeapon(w){if(coins>=w.price){coins-=w.price;stats.spent+=w.price;inventory.push(w.icon);updateInventory();updateUI();save();}}
+    <script>
+        // --- ДАНІ ГРИ: 45 ПРЕДМЕТІВ (ОДЯГ ТА ЗБРОЯ) ---
+        // Розподіл по рідкості: common, rare, epic, mythic, secret
+        const gameItems = [
+            // Базова зброя / Одяг (Common)
+            { id: 1, name: "Пістолет Макарова", type: "weapon", rarity: "common", price: 15, power: 1, isAuto: false, img: "🔫" },
+            { id: 2, name: "Дерев'яна бита", type: "weapon", rarity: "common", price: 50, power: 2, isAuto: false, img: "🏏" },
+            { id: 3, name: "Кепка Співробітника", type: "cloth", rarity: "common", price: 100, power: 1, isAuto: true, img: "🧢" },
+            { id: 4, name: "Стара футболка", type: "cloth", rarity: "common", price: 180, power: 2, isAuto: true, img: "👕" },
+            { id: 5, name: "Револьвер Новачка", type: "weapon", rarity: "common", price: 300, power: 5, isAuto: false, img: "🔫" },
+            { id: 6, name: "Дробовик фермера", type: "weapon", rarity: "common", price: 500, power: 8, isAuto: false, img: "🪵" },
+            { id: 7, name: "Чоботи Гумові", type: "cloth", rarity: "common", price: 750, power: 4, isAuto: true, img: "🥾" },
+            { id: 8, name: "Окуляри Будівельника", type: "cloth", rarity: "common", price: 1000, power: 6, isAuto: true, img: "🥽" },
+            { id: 9, name: "Поліцейський щит", type: "weapon", rarity: "common", price: 1500, power: 12, isAuto: false, img: "🛡️" },
+            
+            // Рідкісні (Rare)
+            { id: 10, name: "Штурмова гвинтівка M4", type: "weapon", rarity: "rare", price: 2500, power: 20, isAuto: false, img: "⚔️" },
+            { id: 11, name: "Армійський Шолом", type: "cloth", rarity: "rare", price: 4000, power: 15, isAuto: true, img: "🪖" },
+            { id: 12, name: "Тактичний Жилет", type: "cloth", rarity: "rare", price: 6000, power: 25, isAuto: true, img: "🦺" },
+            { id: 13, name: "Подвійні УЗІ", type: "weapon", rarity: "rare", price: 8500, power: 45, isAuto: false, img: "🔫" },
+            { id: 14, name: "Ніж Керамбіт", type: "weapon", rarity: "rare", price: 12000, power: 60, isAuto: false, img: "🔪" },
+            { id: 15, name: "Куртка Спецназу", type: "cloth", rarity: "rare", price: 17000, power: 50, isAuto: true, img: "🧥" },
+            { id: 16, name: "Мисливський Лук", type: "weapon", rarity: "rare", price: 22000, power: 90, isAuto: false, img: "🏹" },
+            { id: 17, name: "Маска Геймера", type: "cloth", rarity: "rare", price: 28000, power: 75, isAuto: true, img: "🎭" },
+            { id: 18, name: "Снайперка Скаут", type: "weapon", rarity: "rare", price: 35000, power: 130, isAuto: false, img: "🔭" },
 
-function generateMarket(){
-let d=document.getElementById('marketItems');d.innerHTML='';
-for(let i=0;i<3;i++){
-let w=weapons[Math.floor(Math.random()*weapons.length)];
-let price=Math.floor(Math.random()*1000)+100;
-let b=document.createElement('button');
-b.innerHTML=`${w.icon}<br>${price}`;
-b.onclick=()=>{if(coins>=price){coins-=price;stats.spent+=price;inventory.push(w.icon);generateMarket();updateInventory();updateUI();save();}};
-d.appendChild(b);
-}}
+            // Епічні (Epic)
+            { id: 19, name: "Автомат Калашникова золотий", type: "weapon", rarity: "epic", price: 50000, power: 200, isAuto: false, img: "🔱" },
+            { id: 20, name: "Шолом Кібер-Курки", type: "cloth", rarity: "epic", price: 70000, power: 150, isAuto: true, img: "🥽" },
+            { id: 21, name: "Тяжкий Кулемет", type: "weapon", rarity: "epic", price: 95000, power: 350, isAuto: false, img: "💣" },
+            { id: 22, name: "Костюм Астронавта", type: "cloth", rarity: "epic", price: 130000, power: 280, isAuto: true, img: "👨‍🚀" },
+            { id: 23, name: "РПГ-7 Ракетниця", type: "weapon", rarity: "epic", price: 180000, power: 600, isAuto: false, img: "🚀" },
+            { id: 24, name: "Плащ Вампіра", type: "cloth", rarity: "epic", price: 240000, power: 450, isAuto: true, img: "🦹" },
+            { id: 25, name: "Плазмовий Різак", type: "weapon", rarity: "epic", price: 310000, power: 900, isAuto: false, img: "🪚" },
+            { id: 26, name: "Крила Дракона", type: "cloth", rarity: "epic", price: 400000, power: 700, isAuto: true, img: "🪽" },
+            { id: 27, name: "Снайперська гвинтівка AWP", type: "weapon", rarity: "epic", price: 520000, power: 1400, isAuto: false, img: "🎯" },
 
-function openCase(t){
-let w=weapons[Math.floor(Math.random()*weapons.length)].icon;
-if(t==='pro'&&coins>=2000){coins-=2000}
-else if(t==='den'&&coins>=50000){coins-=50000}
-else if(t==='zcy'&&coins>=100000){coins-=100000}
-else if(t!=='free')return;
-inventory.push(w);
-document.getElementById('caseResult').innerText='Випало: '+w;
-updateInventory();updateUI();save();
-}
+            // Містичні (Mythic)
+            { id: 28, name: "Анігіляторна Гармата", type: "weapon", rarity: "mythic", price: 700000, power: 2500, isAuto: false, img: "⚡" },
+            { id: 29, name: "Корона Імператора Півнів", type: "cloth", rarity: "mythic", price: 950000, power: 1800, isAuto: true, img: "👑" },
+            { id: 30, name: "Меч Екскалібур", type: "weapon", rarity: "mythic", price: 1300000, power: 4000, isAuto: false, img: "🗡️" },
+            { id: 31, name: "Броня Залізної Курки", type: "cloth", rarity: "mythic", price: 1800000, power: 3200, isAuto: true, img: "🦾" },
+            { id: 32, name: "Бластер Х-100", type: "weapon", rarity: "mythic", price: 2500000, power: 7000, isAuto: false, img: "☄️" },
+            { id: 33, name: "Німб Святого Півня", type: "cloth", rarity: "mythic", price: 3600000, power: 5500, isAuto: true, img: "😇" },
+            { id: 34, name: "Тайзер Співдружності", type: "weapon", rarity: "mythic", price: 5000000, power: 12000, isAuto: false, img: "🔌" },
+            { id: 35, name: "Кібернетичний Джетпак", type: "cloth", rarity: "mythic", price: 7000000, power: 9500, isAuto: true, img: "🎒" },
+            { id: 36, name: "Рельсотрон (Railgun)", type: "weapon", rarity: "mythic", price: 10000000, power: 25000, isAuto: false, img: "🔮" },
 
-function updateInventory(){
-let l=document.getElementById('inventoryList');l.innerHTML='';
-inventory.forEach((i,idx)=>{
-let li=document.createElement('li');
-li.innerHTML=i+' <button onclick="sell('+idx+')">Продати</button>';
-l.appendChild(li);
-});}
-
-function sell(i){coins+=50;stats.earned+=50;inventory.splice(i,1);updateInventory();updateUI();save();}
-
-function usePromo(){
-let code=document.getElementById('promoInput').value;
-let msg=document.getElementById('promoMsg');
-if(usedPromos.includes(code)){msg.innerText='Вже використано';return;}
-let valid=['Pro48k','ZCY11K','ChickenClick','Block Strike','GG','2026','BRDAY','Chicken gun','Schoolboy','Free','Run','Gift','YT','Case','Chicken','UPDATE','228','Error','Gold','Avatar','Morning','Night','Happy','Holiday','Winter','Pro','Hello'];
-if(code==='event'){gold+=100;msg.innerText='+100 голди';}
-else if(valid.includes(code)){coins+=2090;msg.innerText='+2090';}
-else{msg.innerText='❌';return;}
-usedPromos.push(code);
-updateUI();save();
-}
-
-function setNick(){nick=document.getElementById('nickInput').value||nick;updateUI();save();}
-function setColor(c){nickColor=c;updateUI();save();}
-function resetGame(){localStorage.clear();location.reload();}
-
-function toggleTheme(){
-if(document.documentElement.style.getPropertyValue('--bg')==='#020617'){
-document.documentElement.style.setProperty('--bg','#ffffff');
-document.documentElement.style.setProperty('--text','#000000');
-document.documentElement.style.setProperty('--card','#dddddd');
-}else{
-document.documentElement.style.setProperty('--bg','#020617');
-document.documentElement.style.setProperty('--text','#0ff');
-document.documentElement.style.setProperty('--card','#000');
-}
-save();}
-
-function newEgg(){let e=document.getElementById('egg');e.onclick=()=>{coins+=50;updateUI();save();};}
-
-function openTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById(t).classList.add('active');}
-
-setInterval(()=>{stats.time++;updateUI();save();},1000);
-
-document.getElementById('clickBtn').addEventListener('click',clickChicken);
-document.getElementById('goldClickBtn').addEventListener('click',goldClickFunc);
-
-load();createShop();generateMarket();updateInventory();createAvatars();updateUI();newEgg();
-</script></body>
-        </html>
+            // Секретні / Містичні Легенди (Secret)
+            { id: 37, name: "Посох Творця Чикена"
